@@ -196,6 +196,7 @@ class ur_function_v(IntEnum):
     ADAPTER_RETAIN = 179                            ## Enumerator for ::urAdapterRetain
     ADAPTER_GET_LAST_ERROR = 180                    ## Enumerator for ::urAdapterGetLastError
     ADAPTER_GET_INFO = 181                          ## Enumerator for ::urAdapterGetInfo
+    DEVICE_GET_SELECTED = 182                       ## Enumerator for ::urDeviceGetSelected
 
 class ur_function_t(c_int):
     def __str__(self):

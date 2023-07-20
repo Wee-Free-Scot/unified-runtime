@@ -1112,6 +1112,10 @@ inline std::ostream &operator<<(std::ostream &os, enum ur_function_t value) {
     case UR_FUNCTION_ADAPTER_GET_INFO:
         os << "UR_FUNCTION_ADAPTER_GET_INFO";
         break;
+
+    case UR_FUNCTION_DEVICE_GET_SELECTED:
+        os << "UR_FUNCTION_DEVICE_GET_SELECTED";
+        break;
     default:
         os << "unknown enumerator";
         break;
@@ -14952,6 +14956,44 @@ inline std::ostream &operator<<(std::ostream &os,
 }
 
 inline std::ostream &
+operator<<(std::ostream &os,
+           const struct ur_device_get_selected_params_t *params) {
+
+    os << ".hPlatform = ";
+
+    ur_params::serializePtr(os, *(params->phPlatform));
+
+    os << ", ";
+    os << ".DeviceType = ";
+
+    os << *(params->pDeviceType);
+
+    os << ", ";
+    os << ".NumEntries = ";
+
+    os << *(params->pNumEntries);
+
+    os << ", ";
+    os << ".phDevices = {";
+    for (size_t i = 0;
+         *(params->pphDevices) != NULL && i < *params->pNumEntries; ++i) {
+        if (i != 0) {
+            os << ", ";
+        }
+
+        ur_params::serializePtr(os, (*(params->pphDevices))[i]);
+    }
+    os << "}";
+
+    os << ", ";
+    os << ".pNumDevices = ";
+
+    ur_params::serializePtr(os, *(params->ppNumDevices));
+
+    return os;
+}
+
+inline std::ostream &
 operator<<(std::ostream &os, const struct ur_device_get_info_params_t *params) {
 
     os << ".hDevice = ";
@@ -15687,6 +15729,9 @@ inline int serializeFunctionParams(std::ostream &os, uint32_t function,
     } break;
     case UR_FUNCTION_DEVICE_GET: {
         os << (const struct ur_device_get_params_t *)params;
+    } break;
+    case UR_FUNCTION_DEVICE_GET_SELECTED: {
+        os << (const struct ur_device_get_selected_params_t *)params;
     } break;
     case UR_FUNCTION_DEVICE_GET_INFO: {
         os << (const struct ur_device_get_info_params_t *)params;
