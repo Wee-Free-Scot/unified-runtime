@@ -139,6 +139,9 @@ namespace ur_loader
         if( ${X}_RESULT_SUCCESS == result && ${obj['params'][4]['name']} != nullptr )
             *${obj['params'][4]['name']} = total_platform_handle_count;
 
+        %elif re.match(r"\w+GetSelected$", th.make_func_name(n, tags, obj)):
+        /* DAN was here */
+
         %else:
         <%param_replacements={}%>
         %for i, item in enumerate(th.get_loader_prologue(n, tags, obj, meta)):

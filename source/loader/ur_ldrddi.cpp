@@ -538,34 +538,7 @@ __urdlllocal ur_result_t UR_APICALL urDeviceGetSelected(
 ) {
     ur_result_t result = UR_RESULT_SUCCESS;
 
-    // extract platform's function pointer table
-    auto dditable =
-        reinterpret_cast<ur_platform_object_t *>(hPlatform)->dditable;
-    auto pfnGetSelected = dditable->ur.Device.pfnGetSelected;
-    if (nullptr == pfnGetSelected) {
-        return UR_RESULT_ERROR_UNINITIALIZED;
-    }
-
-    // convert loader handle to platform handle
-    hPlatform = reinterpret_cast<ur_platform_object_t *>(hPlatform)->handle;
-
-    // forward to device-platform
-    result = pfnGetSelected(hPlatform, DeviceType, NumEntries, phDevices,
-                            pNumDevices);
-
-    if (UR_RESULT_SUCCESS != result) {
-        return result;
-    }
-
-    try {
-        // convert platform handles to loader handles
-        for (size_t i = 0; (nullptr != phDevices) && (i < NumEntries); ++i) {
-            phDevices[i] = reinterpret_cast<ur_device_handle_t>(
-                ur_device_factory.getInstance(phDevices[i], dditable));
-        }
-    } catch (std::bad_alloc &) {
-        result = UR_RESULT_ERROR_OUT_OF_HOST_MEMORY;
-    }
+    /* DAN was here */
 
     return result;
 }
