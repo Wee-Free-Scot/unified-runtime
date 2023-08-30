@@ -13,49 +13,6 @@
 
 namespace driver {
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urInit
-__urdlllocal ur_result_t UR_APICALL urInit(
-    ur_device_init_flags_t device_flags, ///< [in] device initialization flags.
-    ///< must be 0 (default) or a combination of ::ur_device_init_flag_t.
-    ur_loader_config_handle_t
-        hLoaderConfig ///< [in][optional] Handle of loader config handle.
-    ) try {
-    ur_result_t result = UR_RESULT_SUCCESS;
-
-    // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnInit = d_context.urDdiTable.Global.pfnInit;
-    if (nullptr != pfnInit) {
-        result = pfnInit(device_flags, hLoaderConfig);
-    } else {
-        // generic implementation
-    }
-
-    return result;
-} catch (...) {
-    return exceptionToResult(std::current_exception());
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urTearDown
-__urdlllocal ur_result_t UR_APICALL urTearDown(
-    void *pParams ///< [in] pointer to tear down parameters
-    ) try {
-    ur_result_t result = UR_RESULT_SUCCESS;
-
-    // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnTearDown = d_context.urDdiTable.Global.pfnTearDown;
-    if (nullptr != pfnTearDown) {
-        result = pfnTearDown(pParams);
-    } else {
-        // generic implementation
-    }
-
-    return result;
-} catch (...) {
-    return exceptionToResult(std::current_exception());
-}
-
-///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urAdapterGet
 __urdlllocal ur_result_t UR_APICALL urAdapterGet(
     uint32_t
@@ -4626,8 +4583,8 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendKernelLaunchExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urCommandBufferAppendMemcpyUSMExp
-__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemcpyUSMExp(
+/// @brief Intercept function for urCommandBufferAppendUSMMemcpyExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendUSMMemcpyExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer, ///< [in] handle of the command-buffer object.
     void *pDst,         ///< [in] Location the data will be copied to.
@@ -4643,10 +4600,10 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemcpyUSMExp(
     ur_result_t result = UR_RESULT_SUCCESS;
 
     // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnAppendMemcpyUSMExp =
-        d_context.urDdiTable.CommandBufferExp.pfnAppendMemcpyUSMExp;
-    if (nullptr != pfnAppendMemcpyUSMExp) {
-        result = pfnAppendMemcpyUSMExp(hCommandBuffer, pDst, pSrc, size,
+    auto pfnAppendUSMMemcpyExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendUSMMemcpyExp;
+    if (nullptr != pfnAppendUSMMemcpyExp) {
+        result = pfnAppendUSMMemcpyExp(hCommandBuffer, pDst, pSrc, size,
                                        numSyncPointsInWaitList,
                                        pSyncPointWaitList, pSyncPoint);
     } else {
@@ -4659,8 +4616,43 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemcpyUSMExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urCommandBufferAppendMembufferCopyExp
-__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyExp(
+/// @brief Intercept function for urCommandBufferAppendUSMFillExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendUSMFillExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,   ///< [in] handle of the command-buffer object.
+    void *pMemory,        ///< [in] pointer to USM allocated memory to fill.
+    const void *pPattern, ///< [in] pointer to the fill pattern.
+    size_t patternSize,   ///< [in] size in bytes of the pattern.
+    size_t
+        size, ///< [in] fill size in bytes, must be a multiple of patternSize.
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+    ) try {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // if the driver has created a custom function, then call it instead of using the generic path
+    auto pfnAppendUSMFillExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendUSMFillExp;
+    if (nullptr != pfnAppendUSMFillExp) {
+        result = pfnAppendUSMFillExp(hCommandBuffer, pMemory, pPattern,
+                                     patternSize, size, numSyncPointsInWaitList,
+                                     pSyncPointWaitList, pSyncPoint);
+    } else {
+        // generic implementation
+    }
+
+    return result;
+} catch (...) {
+    return exceptionToResult(std::current_exception());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urCommandBufferAppendMemBufferCopyExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferCopyExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hSrcMem, ///< [in] The data to be copied.
@@ -4678,10 +4670,10 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyExp(
     ur_result_t result = UR_RESULT_SUCCESS;
 
     // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnAppendMembufferCopyExp =
-        d_context.urDdiTable.CommandBufferExp.pfnAppendMembufferCopyExp;
-    if (nullptr != pfnAppendMembufferCopyExp) {
-        result = pfnAppendMembufferCopyExp(
+    auto pfnAppendMemBufferCopyExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendMemBufferCopyExp;
+    if (nullptr != pfnAppendMemBufferCopyExp) {
+        result = pfnAppendMemBufferCopyExp(
             hCommandBuffer, hSrcMem, hDstMem, srcOffset, dstOffset, size,
             numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
     } else {
@@ -4694,8 +4686,8 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urCommandBufferAppendMembufferWriteExp
-__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteExp(
+/// @brief Intercept function for urCommandBufferAppendMemBufferWriteExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferWriteExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -4713,10 +4705,10 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteExp(
     ur_result_t result = UR_RESULT_SUCCESS;
 
     // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnAppendMembufferWriteExp =
-        d_context.urDdiTable.CommandBufferExp.pfnAppendMembufferWriteExp;
-    if (nullptr != pfnAppendMembufferWriteExp) {
-        result = pfnAppendMembufferWriteExp(hCommandBuffer, hBuffer, offset,
+    auto pfnAppendMemBufferWriteExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendMemBufferWriteExp;
+    if (nullptr != pfnAppendMemBufferWriteExp) {
+        result = pfnAppendMemBufferWriteExp(hCommandBuffer, hBuffer, offset,
                                             size, pSrc, numSyncPointsInWaitList,
                                             pSyncPointWaitList, pSyncPoint);
     } else {
@@ -4729,8 +4721,8 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urCommandBufferAppendMembufferReadExp
-__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferReadExp(
+/// @brief Intercept function for urCommandBufferAppendMemBufferReadExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferReadExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -4747,10 +4739,10 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferReadExp(
     ur_result_t result = UR_RESULT_SUCCESS;
 
     // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnAppendMembufferReadExp =
-        d_context.urDdiTable.CommandBufferExp.pfnAppendMembufferReadExp;
-    if (nullptr != pfnAppendMembufferReadExp) {
-        result = pfnAppendMembufferReadExp(hCommandBuffer, hBuffer, offset,
+    auto pfnAppendMemBufferReadExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendMemBufferReadExp;
+    if (nullptr != pfnAppendMemBufferReadExp) {
+        result = pfnAppendMemBufferReadExp(hCommandBuffer, hBuffer, offset,
                                            size, pDst, numSyncPointsInWaitList,
                                            pSyncPointWaitList, pSyncPoint);
     } else {
@@ -4763,8 +4755,8 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferReadExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urCommandBufferAppendMembufferCopyRectExp
-__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyRectExp(
+/// @brief Intercept function for urCommandBufferAppendMemBufferCopyRectExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferCopyRectExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hSrcMem, ///< [in] The data to be copied.
@@ -4789,10 +4781,10 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyRectExp(
     ur_result_t result = UR_RESULT_SUCCESS;
 
     // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnAppendMembufferCopyRectExp =
-        d_context.urDdiTable.CommandBufferExp.pfnAppendMembufferCopyRectExp;
-    if (nullptr != pfnAppendMembufferCopyRectExp) {
-        result = pfnAppendMembufferCopyRectExp(
+    auto pfnAppendMemBufferCopyRectExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendMemBufferCopyRectExp;
+    if (nullptr != pfnAppendMemBufferCopyRectExp) {
+        result = pfnAppendMemBufferCopyRectExp(
             hCommandBuffer, hSrcMem, hDstMem, srcOrigin, dstOrigin, region,
             srcRowPitch, srcSlicePitch, dstRowPitch, dstSlicePitch,
             numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
@@ -4806,8 +4798,8 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyRectExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urCommandBufferAppendMembufferWriteRectExp
-__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteRectExp(
+/// @brief Intercept function for urCommandBufferAppendMemBufferWriteRectExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferWriteRectExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -4838,10 +4830,10 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteRectExp(
     ur_result_t result = UR_RESULT_SUCCESS;
 
     // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnAppendMembufferWriteRectExp =
-        d_context.urDdiTable.CommandBufferExp.pfnAppendMembufferWriteRectExp;
-    if (nullptr != pfnAppendMembufferWriteRectExp) {
-        result = pfnAppendMembufferWriteRectExp(
+    auto pfnAppendMemBufferWriteRectExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendMemBufferWriteRectExp;
+    if (nullptr != pfnAppendMemBufferWriteRectExp) {
+        result = pfnAppendMemBufferWriteRectExp(
             hCommandBuffer, hBuffer, bufferOffset, hostOffset, region,
             bufferRowPitch, bufferSlicePitch, hostRowPitch, hostSlicePitch,
             pSrc, numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
@@ -4855,8 +4847,8 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteRectExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urCommandBufferAppendMembufferReadRectExp
-__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferReadRectExp(
+/// @brief Intercept function for urCommandBufferAppendMemBufferReadRectExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferReadRectExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -4885,13 +4877,49 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMembufferReadRectExp(
     ur_result_t result = UR_RESULT_SUCCESS;
 
     // if the driver has created a custom function, then call it instead of using the generic path
-    auto pfnAppendMembufferReadRectExp =
-        d_context.urDdiTable.CommandBufferExp.pfnAppendMembufferReadRectExp;
-    if (nullptr != pfnAppendMembufferReadRectExp) {
-        result = pfnAppendMembufferReadRectExp(
+    auto pfnAppendMemBufferReadRectExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendMemBufferReadRectExp;
+    if (nullptr != pfnAppendMemBufferReadRectExp) {
+        result = pfnAppendMemBufferReadRectExp(
             hCommandBuffer, hBuffer, bufferOffset, hostOffset, region,
             bufferRowPitch, bufferSlicePitch, hostRowPitch, hostSlicePitch,
             pDst, numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
+    } else {
+        // generic implementation
+    }
+
+    return result;
+} catch (...) {
+    return exceptionToResult(std::current_exception());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urCommandBufferAppendMemBufferFillExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferFillExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,      ///< [in] handle of the command-buffer object.
+    ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
+    const void *pPattern,    ///< [in] pointer to the fill pattern.
+    size_t patternSize,      ///< [in] size in bytes of the pattern.
+    size_t offset,           ///< [in] offset into the buffer.
+    size_t
+        size, ///< [in] fill size in bytes, must be a multiple of patternSize.
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+    ) try {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // if the driver has created a custom function, then call it instead of using the generic path
+    auto pfnAppendMemBufferFillExp =
+        d_context.urDdiTable.CommandBufferExp.pfnAppendMemBufferFillExp;
+    if (nullptr != pfnAppendMemBufferFillExp) {
+        result = pfnAppendMemBufferFillExp(
+            hCommandBuffer, hBuffer, pPattern, patternSize, offset, size,
+            numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
     } else {
         // generic implementation
     }
@@ -5090,10 +5118,6 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetGlobalProcAddrTable(
 
     ur_result_t result = UR_RESULT_SUCCESS;
 
-    pDdiTable->pfnInit = driver::urInit;
-
-    pDdiTable->pfnTearDown = driver::urTearDown;
-
     pDdiTable->pfnAdapterGet = driver::urAdapterGet;
 
     pDdiTable->pfnAdapterRelease = driver::urAdapterRelease;
@@ -5214,26 +5238,31 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetCommandBufferExpProcAddrTable(
     pDdiTable->pfnAppendKernelLaunchExp =
         driver::urCommandBufferAppendKernelLaunchExp;
 
-    pDdiTable->pfnAppendMemcpyUSMExp =
-        driver::urCommandBufferAppendMemcpyUSMExp;
+    pDdiTable->pfnAppendUSMMemcpyExp =
+        driver::urCommandBufferAppendUSMMemcpyExp;
 
-    pDdiTable->pfnAppendMembufferCopyExp =
-        driver::urCommandBufferAppendMembufferCopyExp;
+    pDdiTable->pfnAppendUSMFillExp = driver::urCommandBufferAppendUSMFillExp;
 
-    pDdiTable->pfnAppendMembufferWriteExp =
-        driver::urCommandBufferAppendMembufferWriteExp;
+    pDdiTable->pfnAppendMemBufferCopyExp =
+        driver::urCommandBufferAppendMemBufferCopyExp;
 
-    pDdiTable->pfnAppendMembufferReadExp =
-        driver::urCommandBufferAppendMembufferReadExp;
+    pDdiTable->pfnAppendMemBufferWriteExp =
+        driver::urCommandBufferAppendMemBufferWriteExp;
 
-    pDdiTable->pfnAppendMembufferCopyRectExp =
-        driver::urCommandBufferAppendMembufferCopyRectExp;
+    pDdiTable->pfnAppendMemBufferReadExp =
+        driver::urCommandBufferAppendMemBufferReadExp;
 
-    pDdiTable->pfnAppendMembufferWriteRectExp =
-        driver::urCommandBufferAppendMembufferWriteRectExp;
+    pDdiTable->pfnAppendMemBufferCopyRectExp =
+        driver::urCommandBufferAppendMemBufferCopyRectExp;
 
-    pDdiTable->pfnAppendMembufferReadRectExp =
-        driver::urCommandBufferAppendMembufferReadRectExp;
+    pDdiTable->pfnAppendMemBufferWriteRectExp =
+        driver::urCommandBufferAppendMemBufferWriteRectExp;
+
+    pDdiTable->pfnAppendMemBufferReadRectExp =
+        driver::urCommandBufferAppendMemBufferReadRectExp;
+
+    pDdiTable->pfnAppendMemBufferFillExp =
+        driver::urCommandBufferAppendMemBufferFillExp;
 
     pDdiTable->pfnEnqueueExp = driver::urCommandBufferEnqueueExp;
 

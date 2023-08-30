@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  *
  * @file ur_api.h
- * @version v0.7-r0
+ * @version v0.8-r0
  *
  */
 #ifndef UR_API_H_INCLUDED
@@ -126,8 +126,6 @@ typedef enum ur_function_t {
     UR_FUNCTION_QUEUE_CREATE_WITH_NATIVE_HANDLE = 96,                          ///< Enumerator for ::urQueueCreateWithNativeHandle
     UR_FUNCTION_QUEUE_FINISH = 97,                                             ///< Enumerator for ::urQueueFinish
     UR_FUNCTION_QUEUE_FLUSH = 98,                                              ///< Enumerator for ::urQueueFlush
-    UR_FUNCTION_INIT = 99,                                                     ///< Enumerator for ::urInit
-    UR_FUNCTION_TEAR_DOWN = 100,                                               ///< Enumerator for ::urTearDown
     UR_FUNCTION_SAMPLER_CREATE = 101,                                          ///< Enumerator for ::urSamplerCreate
     UR_FUNCTION_SAMPLER_RETAIN = 102,                                          ///< Enumerator for ::urSamplerRetain
     UR_FUNCTION_SAMPLER_RELEASE = 103,                                         ///< Enumerator for ::urSamplerRelease
@@ -153,9 +151,6 @@ typedef enum ur_function_t {
     UR_FUNCTION_COMMAND_BUFFER_FINALIZE_EXP = 123,                             ///< Enumerator for ::urCommandBufferFinalizeExp
     UR_FUNCTION_COMMAND_BUFFER_APPEND_KERNEL_LAUNCH_EXP = 125,                 ///< Enumerator for ::urCommandBufferAppendKernelLaunchExp
     UR_FUNCTION_COMMAND_BUFFER_ENQUEUE_EXP = 128,                              ///< Enumerator for ::urCommandBufferEnqueueExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEMCPY_USM_EXP = 129,                    ///< Enumerator for ::urCommandBufferAppendMemcpyUSMExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEMBUFFER_COPY_EXP = 130,                ///< Enumerator for ::urCommandBufferAppendMembufferCopyExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEMBUFFER_COPY_RECT_EXP = 131,           ///< Enumerator for ::urCommandBufferAppendMembufferCopyRectExp
     UR_FUNCTION_USM_PITCHED_ALLOC_EXP = 132,                                   ///< Enumerator for ::urUSMPitchedAllocExp
     UR_FUNCTION_BINDLESS_IMAGES_UNSAMPLED_IMAGE_HANDLE_DESTROY_EXP = 133,      ///< Enumerator for ::urBindlessImagesUnsampledImageHandleDestroyExp
     UR_FUNCTION_BINDLESS_IMAGES_SAMPLED_IMAGE_HANDLE_DESTROY_EXP = 134,        ///< Enumerator for ::urBindlessImagesSampledImageHandleDestroyExp
@@ -191,10 +186,6 @@ typedef enum ur_function_t {
     UR_FUNCTION_USM_P2P_ENABLE_PEER_ACCESS_EXP = 165,                          ///< Enumerator for ::urUsmP2PEnablePeerAccessExp
     UR_FUNCTION_USM_P2P_DISABLE_PEER_ACCESS_EXP = 166,                         ///< Enumerator for ::urUsmP2PDisablePeerAccessExp
     UR_FUNCTION_USM_P2P_PEER_ACCESS_GET_INFO_EXP = 167,                        ///< Enumerator for ::urUsmP2PPeerAccessGetInfoExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEMBUFFER_WRITE_EXP = 168,               ///< Enumerator for ::urCommandBufferAppendMembufferWriteExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEMBUFFER_READ_EXP = 169,                ///< Enumerator for ::urCommandBufferAppendMembufferReadExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEMBUFFER_WRITE_RECT_EXP = 170,          ///< Enumerator for ::urCommandBufferAppendMembufferWriteRectExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEMBUFFER_READ_RECT_EXP = 171,           ///< Enumerator for ::urCommandBufferAppendMembufferReadRectExp
     UR_FUNCTION_LOADER_CONFIG_CREATE = 172,                                    ///< Enumerator for ::urLoaderConfigCreate
     UR_FUNCTION_LOADER_CONFIG_RELEASE = 173,                                   ///< Enumerator for ::urLoaderConfigRelease
     UR_FUNCTION_LOADER_CONFIG_RETAIN = 174,                                    ///< Enumerator for ::urLoaderConfigRetain
@@ -205,7 +196,18 @@ typedef enum ur_function_t {
     UR_FUNCTION_ADAPTER_RETAIN = 179,                                          ///< Enumerator for ::urAdapterRetain
     UR_FUNCTION_ADAPTER_GET_LAST_ERROR = 180,                                  ///< Enumerator for ::urAdapterGetLastError
     UR_FUNCTION_ADAPTER_GET_INFO = 181,                                        ///< Enumerator for ::urAdapterGetInfo
-    UR_FUNCTION_DEVICE_GET_SELECTED = 182,                                     ///< Enumerator for ::urDeviceGetSelected
+    UR_FUNCTION_LOADER_INIT = 182,                                             ///< Enumerator for ::urLoaderInit
+    UR_FUNCTION_LOADER_TEAR_DOWN = 183,                                        ///< Enumerator for ::urLoaderTearDown
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_MEMCPY_EXP = 184,                    ///< Enumerator for ::urCommandBufferAppendUSMMemcpyExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_FILL_EXP = 185,                      ///< Enumerator for ::urCommandBufferAppendUSMFillExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_COPY_EXP = 186,               ///< Enumerator for ::urCommandBufferAppendMemBufferCopyExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_WRITE_EXP = 187,              ///< Enumerator for ::urCommandBufferAppendMemBufferWriteExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_READ_EXP = 188,               ///< Enumerator for ::urCommandBufferAppendMemBufferReadExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_COPY_RECT_EXP = 189,          ///< Enumerator for ::urCommandBufferAppendMemBufferCopyRectExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_WRITE_RECT_EXP = 190,         ///< Enumerator for ::urCommandBufferAppendMemBufferWriteRectExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_READ_RECT_EXP = 191,          ///< Enumerator for ::urCommandBufferAppendMemBufferReadRectExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_FILL_EXP = 192,               ///< Enumerator for ::urCommandBufferAppendMemBufferFillExp
+    UR_FUNCTION_DEVICE_GET_SELECTED = 193,                                     ///< Enumerator for ::urDeviceGetSelected
     /// @cond
     UR_FUNCTION_FORCE_UINT32 = 0x7fffffff
     /// @endcond
@@ -516,9 +518,9 @@ typedef struct ur_rect_region_t {
 #if !defined(__GNUC__)
 #pragma endregion
 #endif
-// Intel 'oneAPI' Unified Runtime APIs for Runtime
+// Intel 'oneAPI' Unified Runtime APIs for Loader
 #if !defined(__GNUC__)
-#pragma region runtime
+#pragma region loader
 #endif
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Supported device initialization flags
@@ -669,21 +671,21 @@ urLoaderConfigEnableLayer(
 );
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Initialize the 'oneAPI' adapter(s)
+/// @brief Initialize the 'oneAPI' loader
 ///
 /// @details
 ///     - The application must call this function before calling any other
 ///       function.
 ///     - If this function is not called then all other functions will return
 ///       ::UR_RESULT_ERROR_UNINITIALIZED.
-///     - Only one instance of each adapter will be initialized per process.
+///     - Only one instance of the loader will be initialized per process.
 ///     - The application may call this function multiple times with different
 ///       flags or environment variables enabled.
 ///     - The application must call this function after forking new processes.
 ///       Each forked process must call this function.
 ///     - The application may call this function from simultaneous threads.
 ///     - The implementation of this function must be thread-safe for scenarios
-///       where multiple libraries may initialize the adapter(s) simultaneously.
+///       where multiple libraries may initialize the loader simultaneously.
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
@@ -694,28 +696,32 @@ urLoaderConfigEnableLayer(
 ///         + `::UR_DEVICE_INIT_FLAGS_MASK & device_flags`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 UR_APIEXPORT ur_result_t UR_APICALL
-urInit(
+urLoaderInit(
     ur_device_init_flags_t device_flags,    ///< [in] device initialization flags.
                                             ///< must be 0 (default) or a combination of ::ur_device_init_flag_t.
     ur_loader_config_handle_t hLoaderConfig ///< [in][optional] Handle of loader config handle.
 );
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Tear down the 'oneAPI' instance and release all its resources
+/// @brief Tear down the 'oneAPI' loader and release all its resources
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
 ///     - ::UR_RESULT_ERROR_UNINITIALIZED
 ///     - ::UR_RESULT_ERROR_DEVICE_LOST
 ///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
-///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
-///         + `NULL == pParams`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 UR_APIEXPORT ur_result_t UR_APICALL
-urTearDown(
-    void *pParams ///< [in] pointer to tear down parameters
-);
+urLoaderTearDown(
+    void);
 
+#if !defined(__GNUC__)
+#pragma endregion
+#endif
+// Intel 'oneAPI' Unified Runtime APIs for Adapter
+#if !defined(__GNUC__)
+#pragma region adapter
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Retrieves all available adapters
 ///
@@ -754,7 +760,9 @@ urAdapterGet(
 ///
 /// @details
 ///     - When the reference count of the adapter reaches zero, the adapter may
-///       perform adapter-specififc resource teardown
+///       perform adapter-specififc resource teardown. Resources must be left in
+///       a state where it safe for the adapter to be subsequently reinitialized
+///       with ::urAdapterGet
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
@@ -1023,7 +1031,8 @@ urPlatformGetInfo(
 typedef enum ur_api_version_t {
     UR_API_VERSION_0_6 = UR_MAKE_VERSION(0, 6),     ///< version 0.6
     UR_API_VERSION_0_7 = UR_MAKE_VERSION(0, 7),     ///< version 0.7
-    UR_API_VERSION_CURRENT = UR_MAKE_VERSION(0, 7), ///< latest known version
+    UR_API_VERSION_0_8 = UR_MAKE_VERSION(0, 8),     ///< version 0.8
+    UR_API_VERSION_CURRENT = UR_MAKE_VERSION(0, 8), ///< latest known version
     /// @cond
     UR_API_VERSION_FORCE_UINT32 = 0x7fffffff
     /// @endcond
@@ -1225,6 +1234,12 @@ typedef enum ur_platform_backend_t {
 /// @brief AMD GCN
 #define UR_DEVICE_BINARY_TARGET_AMDGCN "amdgcn"
 #endif // UR_DEVICE_BINARY_TARGET_AMDGCN
+
+///////////////////////////////////////////////////////////////////////////////
+#ifndef UR_DEVICE_BINARY_TARGET_NATIVE_CPU
+/// @brief Native CPU
+#define UR_DEVICE_BINARY_TARGET_NATIVE_CPU "native_cpu"
+#endif // UR_DEVICE_BINARY_TARGET_NATIVE_CPU
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Device Binary Type
@@ -1496,6 +1511,7 @@ typedef enum ur_device_info_t {
                                                                     ///< is implementation-defined, but newer devices should have a higher
                                                                     ///< version than older devices.
     UR_DEVICE_INFO_VIRTUAL_MEMORY_SUPPORT = 114,                    ///< [::ur_bool_t] return true if the device supports virtual memory.
+    UR_DEVICE_INFO_ESIMD_SUPPORT = 115,                             ///< [::ur_bool_t] return true if the device supports ESIMD.
     UR_DEVICE_INFO_BINDLESS_IMAGES_SUPPORT_EXP = 0x2000,            ///< [::ur_bool_t] returns true if the device supports the creation of
                                                                     ///< bindless images
     UR_DEVICE_INFO_BINDLESS_IMAGES_SHARED_USM_SUPPORT_EXP = 0x2001, ///< [::ur_bool_t] returns true if the device supports the creation of
@@ -4449,8 +4465,6 @@ urProgramCreateWithNativeHandle(
 /// @brief Create kernel object from a program.
 ///
 /// @details
-///     - Multiple calls to this function will return identical device handles,
-///       in the same order.
 ///     - The application may call this function from simultaneous threads.
 ///     - The implementation of this function should be lock-free.
 ///
@@ -7806,7 +7820,7 @@ urCommandBufferAppendKernelLaunchExp(
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
-urCommandBufferAppendMemcpyUSMExp(
+urCommandBufferAppendUSMMemcpyExp(
     ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
     void *pDst,                                                   ///< [in] Location the data will be copied to.
     const void *pSrc,                                             ///< [in] The data to be copied.
@@ -7814,6 +7828,45 @@ urCommandBufferAppendMemcpyUSMExp(
     uint32_t numSyncPointsInWaitList,                             ///< [in] The number of sync points in the provided dependency list.
     const ur_exp_command_buffer_sync_point_t *pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
     ur_exp_command_buffer_sync_point_t *pSyncPoint                ///< [out][optional] sync point associated with this command
+);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Append a USM fill command to a command-buffer object
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hCommandBuffer`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pMemory`
+///         + `NULL == pPattern`
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_EXP
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `patternSize == 0 || size == 0`
+///         + `patternSize > size`
+///         + `(patternSize & (patternSize - 1)) != 0`
+///         + `size % patternSize != 0`
+///         + If `size` is higher than the allocation size of `ptr`
+///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP
+///         + `pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0`
+///         + `pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0`
+///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
+///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
+UR_APIEXPORT ur_result_t UR_APICALL
+urCommandBufferAppendUSMFillExp(
+    ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
+    void *pMemory,                                                ///< [in] pointer to USM allocated memory to fill.
+    const void *pPattern,                                         ///< [in] pointer to the fill pattern.
+    size_t patternSize,                                           ///< [in] size in bytes of the pattern.
+    size_t size,                                                  ///< [in] fill size in bytes, must be a multiple of patternSize.
+    uint32_t numSyncPointsInWaitList,                             ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *pSyncPoint                ///< [out][optional] sync point associated with this command.
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -7837,7 +7890,7 @@ urCommandBufferAppendMemcpyUSMExp(
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
-urCommandBufferAppendMembufferCopyExp(
+urCommandBufferAppendMemBufferCopyExp(
     ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hSrcMem,                                      ///< [in] The data to be copied.
     ur_mem_handle_t hDstMem,                                      ///< [in] The location the data will be copied to.
@@ -7871,7 +7924,7 @@ urCommandBufferAppendMembufferCopyExp(
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
-urCommandBufferAppendMembufferWriteExp(
+urCommandBufferAppendMemBufferWriteExp(
     ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer,                                      ///< [in] handle of the buffer object.
     size_t offset,                                                ///< [in] offset in bytes in the buffer object.
@@ -7904,7 +7957,7 @@ urCommandBufferAppendMembufferWriteExp(
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
-urCommandBufferAppendMembufferReadExp(
+urCommandBufferAppendMemBufferReadExp(
     ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer,                                      ///< [in] handle of the buffer object.
     size_t offset,                                                ///< [in] offset in bytes in the buffer object.
@@ -7936,7 +7989,7 @@ urCommandBufferAppendMembufferReadExp(
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
-urCommandBufferAppendMembufferCopyRectExp(
+urCommandBufferAppendMemBufferCopyRectExp(
     ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hSrcMem,                                      ///< [in] The data to be copied.
     ur_mem_handle_t hDstMem,                                      ///< [in] The location the data will be copied to.
@@ -7974,7 +8027,7 @@ urCommandBufferAppendMembufferCopyRectExp(
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
-urCommandBufferAppendMembufferWriteRectExp(
+urCommandBufferAppendMemBufferWriteRectExp(
     ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer,                                      ///< [in] handle of the buffer object.
     ur_rect_offset_t bufferOffset,                                ///< [in] 3D offset in the buffer.
@@ -8015,7 +8068,7 @@ urCommandBufferAppendMembufferWriteRectExp(
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
-urCommandBufferAppendMembufferReadRectExp(
+urCommandBufferAppendMemBufferReadRectExp(
     ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer,                                      ///< [in] handle of the buffer object.
     ur_rect_offset_t bufferOffset,                                ///< [in] 3D offset in the buffer.
@@ -8031,6 +8084,42 @@ urCommandBufferAppendMembufferReadRectExp(
     uint32_t numSyncPointsInWaitList,                             ///< [in] The number of sync points in the provided dependency list.
     const ur_exp_command_buffer_sync_point_t *pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
     ur_exp_command_buffer_sync_point_t *pSyncPoint                ///< [out][optional] sync point associated with this command
+);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Append a memory fill command to a command-buffer object
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hCommandBuffer`
+///         + `NULL == hBuffer`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pPattern`
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP
+///         + `pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0`
+///         + `pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0`
+///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + If `offset + size` results in an out-of-bounds access.
+///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
+///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
+UR_APIEXPORT ur_result_t UR_APICALL
+urCommandBufferAppendMemBufferFillExp(
+    ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
+    ur_mem_handle_t hBuffer,                                      ///< [in] handle of the buffer object.
+    const void *pPattern,                                         ///< [in] pointer to the fill pattern.
+    size_t patternSize,                                           ///< [in] size in bytes of the pattern.
+    size_t offset,                                                ///< [in] offset into the buffer.
+    size_t size,                                                  ///< [in] fill size in bytes, must be a multiple of patternSize.
+    uint32_t numSyncPointsInWaitList,                             ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *pSyncPoint                ///< [out][optional] sync point associated with this command.
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -9031,6 +9120,54 @@ typedef struct ur_physical_mem_release_params_t {
 } ur_physical_mem_release_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urAdapterGet
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_adapter_get_params_t {
+    uint32_t *pNumEntries;
+    ur_adapter_handle_t **pphAdapters;
+    uint32_t **ppNumAdapters;
+} ur_adapter_get_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urAdapterRelease
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_adapter_release_params_t {
+    ur_adapter_handle_t *phAdapter;
+} ur_adapter_release_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urAdapterRetain
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_adapter_retain_params_t {
+    ur_adapter_handle_t *phAdapter;
+} ur_adapter_retain_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urAdapterGetLastError
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_adapter_get_last_error_params_t {
+    ur_adapter_handle_t *phAdapter;
+    const char ***pppMessage;
+    int32_t **ppError;
+} ur_adapter_get_last_error_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urAdapterGetInfo
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_adapter_get_info_params_t {
+    ur_adapter_handle_t *phAdapter;
+    ur_adapter_info_t *ppropName;
+    size_t *ppropSize;
+    void **ppPropValue;
+    size_t **ppPropSizeRet;
+} ur_adapter_get_info_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urEnqueueKernelLaunch
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
@@ -9899,10 +10036,10 @@ typedef struct ur_command_buffer_append_kernel_launch_exp_params_t {
 } ur_command_buffer_append_kernel_launch_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urCommandBufferAppendMemcpyUSMExp
+/// @brief Function parameters for urCommandBufferAppendUSMMemcpyExp
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_command_buffer_append_memcpy_usm_exp_params_t {
+typedef struct ur_command_buffer_append_usm_memcpy_exp_params_t {
     ur_exp_command_buffer_handle_t *phCommandBuffer;
     void **ppDst;
     const void **ppSrc;
@@ -9910,13 +10047,28 @@ typedef struct ur_command_buffer_append_memcpy_usm_exp_params_t {
     uint32_t *pnumSyncPointsInWaitList;
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
-} ur_command_buffer_append_memcpy_usm_exp_params_t;
+} ur_command_buffer_append_usm_memcpy_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urCommandBufferAppendMembufferCopyExp
+/// @brief Function parameters for urCommandBufferAppendUSMFillExp
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_command_buffer_append_membuffer_copy_exp_params_t {
+typedef struct ur_command_buffer_append_usm_fill_exp_params_t {
+    ur_exp_command_buffer_handle_t *phCommandBuffer;
+    void **ppMemory;
+    const void **ppPattern;
+    size_t *ppatternSize;
+    size_t *psize;
+    uint32_t *pnumSyncPointsInWaitList;
+    const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
+    ur_exp_command_buffer_sync_point_t **ppSyncPoint;
+} ur_command_buffer_append_usm_fill_exp_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urCommandBufferAppendMemBufferCopyExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_command_buffer_append_mem_buffer_copy_exp_params_t {
     ur_exp_command_buffer_handle_t *phCommandBuffer;
     ur_mem_handle_t *phSrcMem;
     ur_mem_handle_t *phDstMem;
@@ -9926,13 +10078,13 @@ typedef struct ur_command_buffer_append_membuffer_copy_exp_params_t {
     uint32_t *pnumSyncPointsInWaitList;
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
-} ur_command_buffer_append_membuffer_copy_exp_params_t;
+} ur_command_buffer_append_mem_buffer_copy_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urCommandBufferAppendMembufferWriteExp
+/// @brief Function parameters for urCommandBufferAppendMemBufferWriteExp
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_command_buffer_append_membuffer_write_exp_params_t {
+typedef struct ur_command_buffer_append_mem_buffer_write_exp_params_t {
     ur_exp_command_buffer_handle_t *phCommandBuffer;
     ur_mem_handle_t *phBuffer;
     size_t *poffset;
@@ -9941,13 +10093,13 @@ typedef struct ur_command_buffer_append_membuffer_write_exp_params_t {
     uint32_t *pnumSyncPointsInWaitList;
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
-} ur_command_buffer_append_membuffer_write_exp_params_t;
+} ur_command_buffer_append_mem_buffer_write_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urCommandBufferAppendMembufferReadExp
+/// @brief Function parameters for urCommandBufferAppendMemBufferReadExp
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_command_buffer_append_membuffer_read_exp_params_t {
+typedef struct ur_command_buffer_append_mem_buffer_read_exp_params_t {
     ur_exp_command_buffer_handle_t *phCommandBuffer;
     ur_mem_handle_t *phBuffer;
     size_t *poffset;
@@ -9956,13 +10108,13 @@ typedef struct ur_command_buffer_append_membuffer_read_exp_params_t {
     uint32_t *pnumSyncPointsInWaitList;
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
-} ur_command_buffer_append_membuffer_read_exp_params_t;
+} ur_command_buffer_append_mem_buffer_read_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urCommandBufferAppendMembufferCopyRectExp
+/// @brief Function parameters for urCommandBufferAppendMemBufferCopyRectExp
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_command_buffer_append_membuffer_copy_rect_exp_params_t {
+typedef struct ur_command_buffer_append_mem_buffer_copy_rect_exp_params_t {
     ur_exp_command_buffer_handle_t *phCommandBuffer;
     ur_mem_handle_t *phSrcMem;
     ur_mem_handle_t *phDstMem;
@@ -9976,13 +10128,13 @@ typedef struct ur_command_buffer_append_membuffer_copy_rect_exp_params_t {
     uint32_t *pnumSyncPointsInWaitList;
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
-} ur_command_buffer_append_membuffer_copy_rect_exp_params_t;
+} ur_command_buffer_append_mem_buffer_copy_rect_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urCommandBufferAppendMembufferWriteRectExp
+/// @brief Function parameters for urCommandBufferAppendMemBufferWriteRectExp
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_command_buffer_append_membuffer_write_rect_exp_params_t {
+typedef struct ur_command_buffer_append_mem_buffer_write_rect_exp_params_t {
     ur_exp_command_buffer_handle_t *phCommandBuffer;
     ur_mem_handle_t *phBuffer;
     ur_rect_offset_t *pbufferOffset;
@@ -9996,13 +10148,13 @@ typedef struct ur_command_buffer_append_membuffer_write_rect_exp_params_t {
     uint32_t *pnumSyncPointsInWaitList;
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
-} ur_command_buffer_append_membuffer_write_rect_exp_params_t;
+} ur_command_buffer_append_mem_buffer_write_rect_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urCommandBufferAppendMembufferReadRectExp
+/// @brief Function parameters for urCommandBufferAppendMemBufferReadRectExp
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_command_buffer_append_membuffer_read_rect_exp_params_t {
+typedef struct ur_command_buffer_append_mem_buffer_read_rect_exp_params_t {
     ur_exp_command_buffer_handle_t *phCommandBuffer;
     ur_mem_handle_t *phBuffer;
     ur_rect_offset_t *pbufferOffset;
@@ -10016,7 +10168,23 @@ typedef struct ur_command_buffer_append_membuffer_read_rect_exp_params_t {
     uint32_t *pnumSyncPointsInWaitList;
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
-} ur_command_buffer_append_membuffer_read_rect_exp_params_t;
+} ur_command_buffer_append_mem_buffer_read_rect_exp_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urCommandBufferAppendMemBufferFillExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_command_buffer_append_mem_buffer_fill_exp_params_t {
+    ur_exp_command_buffer_handle_t *phCommandBuffer;
+    ur_mem_handle_t *phBuffer;
+    const void **ppPattern;
+    size_t *ppatternSize;
+    size_t *poffset;
+    size_t *psize;
+    uint32_t *pnumSyncPointsInWaitList;
+    const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
+    ur_exp_command_buffer_sync_point_t **ppSyncPoint;
+} ur_command_buffer_append_mem_buffer_fill_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urCommandBufferEnqueueExp
@@ -10062,69 +10230,13 @@ typedef struct ur_usm_p2p_peer_access_get_info_exp_params_t {
 } ur_usm_p2p_peer_access_get_info_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urInit
+/// @brief Function parameters for urLoaderInit
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_init_params_t {
+typedef struct ur_loader_init_params_t {
     ur_device_init_flags_t *pdevice_flags;
     ur_loader_config_handle_t *phLoaderConfig;
-} ur_init_params_t;
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urTearDown
-/// @details Each entry is a pointer to the parameter passed to the function;
-///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_tear_down_params_t {
-    void **ppParams;
-} ur_tear_down_params_t;
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urAdapterGet
-/// @details Each entry is a pointer to the parameter passed to the function;
-///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_adapter_get_params_t {
-    uint32_t *pNumEntries;
-    ur_adapter_handle_t **pphAdapters;
-    uint32_t **ppNumAdapters;
-} ur_adapter_get_params_t;
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urAdapterRelease
-/// @details Each entry is a pointer to the parameter passed to the function;
-///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_adapter_release_params_t {
-    ur_adapter_handle_t *phAdapter;
-} ur_adapter_release_params_t;
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urAdapterRetain
-/// @details Each entry is a pointer to the parameter passed to the function;
-///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_adapter_retain_params_t {
-    ur_adapter_handle_t *phAdapter;
-} ur_adapter_retain_params_t;
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urAdapterGetLastError
-/// @details Each entry is a pointer to the parameter passed to the function;
-///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_adapter_get_last_error_params_t {
-    ur_adapter_handle_t *phAdapter;
-    const char ***pppMessage;
-    int32_t **ppError;
-} ur_adapter_get_last_error_params_t;
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Function parameters for urAdapterGetInfo
-/// @details Each entry is a pointer to the parameter passed to the function;
-///     allowing the callback the ability to modify the parameter's value
-typedef struct ur_adapter_get_info_params_t {
-    ur_adapter_handle_t *phAdapter;
-    ur_adapter_info_t *ppropName;
-    size_t *ppropSize;
-    void **ppPropValue;
-    size_t **ppPropSizeRet;
-} ur_adapter_get_info_params_t;
+} ur_loader_init_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urVirtualMemGranularityGetInfo

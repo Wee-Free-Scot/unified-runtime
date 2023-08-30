@@ -33,7 +33,14 @@ class AdapterRegistry {
         if (forceLoadedAdaptersOpt.has_value()) {
             for (const auto &s : forceLoadedAdaptersOpt.value()) {
                 auto path = fs::path(s);
-                if (fs::exists(path)) {
+                bool exists = false;
+                try {
+                    exists = fs::exists(path);
+                } catch (std::exception &e) {
+                    logger::error(e.what());
+                }
+
+                if (exists) {
                     adaptersLoadPaths.emplace_back(std::vector{path});
                 } else {
                     logger::warning(
@@ -106,8 +113,10 @@ class AdapterRegistry {
     // to load the adapter.
     std::vector<std::vector<fs::path>> adaptersLoadPaths;
 
-    static constexpr std::array<const char *, 2> knownAdapterNames{
+    static constexpr std::array<const char *, 4> knownAdapterNames{
         MAKE_LIBRARY_NAME("ur_adapter_level_zero", "0"),
+        MAKE_LIBRARY_NAME("ur_adapter_hip", "0"),
+        MAKE_LIBRARY_NAME("ur_adapter_opencl", "0"),
         MAKE_LIBRARY_NAME("ur_adapter_cuda", "0")};
 
     std::optional<std::vector<fs::path>> getEnvAdapterSearchPaths() {

@@ -158,21 +158,21 @@ ur_result_t UR_APICALL urLoaderConfigEnableLayer(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Initialize the 'oneAPI' adapter(s)
+/// @brief Initialize the 'oneAPI' loader
 ///
 /// @details
 ///     - The application must call this function before calling any other
 ///       function.
 ///     - If this function is not called then all other functions will return
 ///       ::UR_RESULT_ERROR_UNINITIALIZED.
-///     - Only one instance of each adapter will be initialized per process.
+///     - Only one instance of the loader will be initialized per process.
 ///     - The application may call this function multiple times with different
 ///       flags or environment variables enabled.
 ///     - The application must call this function after forking new processes.
 ///       Each forked process must call this function.
 ///     - The application may call this function from simultaneous threads.
 ///     - The implementation of this function must be thread-safe for scenarios
-///       where multiple libraries may initialize the adapter(s) simultaneously.
+///       where multiple libraries may initialize the loader simultaneously.
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
@@ -182,51 +182,38 @@ ur_result_t UR_APICALL urLoaderConfigEnableLayer(
 ///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
 ///         + `::UR_DEVICE_INIT_FLAGS_MASK & device_flags`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
-ur_result_t UR_APICALL urInit(
+ur_result_t UR_APICALL urLoaderInit(
     ur_device_init_flags_t device_flags, ///< [in] device initialization flags.
     ///< must be 0 (default) or a combination of ::ur_device_init_flag_t.
     ur_loader_config_handle_t
         hLoaderConfig ///< [in][optional] Handle of loader config handle.
     ) try {
+
+    if (UR_DEVICE_INIT_FLAGS_MASK & device_flags) {
+        return UR_RESULT_ERROR_INVALID_ENUMERATION;
+    }
+
     static ur_result_t result = UR_RESULT_SUCCESS;
     std::call_once(ur_lib::context->initOnce, [device_flags, hLoaderConfig]() {
         result = ur_lib::context->Init(device_flags, hLoaderConfig);
     });
 
-    if (UR_RESULT_SUCCESS != result) {
-        return result;
-    }
-
-    auto pfnInit = ur_lib::context->urDdiTable.Global.pfnInit;
-    if (nullptr == pfnInit) {
-        return UR_RESULT_ERROR_UNINITIALIZED;
-    }
-
-    return pfnInit(device_flags, hLoaderConfig);
+    return result;
 } catch (...) {
     return exceptionToResult(std::current_exception());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Tear down the 'oneAPI' instance and release all its resources
+/// @brief Tear down the 'oneAPI' loader and release all its resources
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
 ///     - ::UR_RESULT_ERROR_UNINITIALIZED
 ///     - ::UR_RESULT_ERROR_DEVICE_LOST
 ///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
-///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
-///         + `NULL == pParams`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
-ur_result_t UR_APICALL urTearDown(
-    void *pParams ///< [in] pointer to tear down parameters
-    ) try {
-    auto pfnTearDown = ur_lib::context->urDdiTable.Global.pfnTearDown;
-    if (nullptr == pfnTearDown) {
-        return UR_RESULT_ERROR_UNINITIALIZED;
-    }
-
-    return pfnTearDown(pParams);
+ur_result_t UR_APICALL urLoaderTearDown(void) try {
+    return ur_lib::urLoaderTearDown();
 } catch (...) {
     return exceptionToResult(std::current_exception());
 }
@@ -280,7 +267,9 @@ ur_result_t UR_APICALL urAdapterGet(
 ///
 /// @details
 ///     - When the reference count of the adapter reaches zero, the adapter may
-///       perform adapter-specififc resource teardown
+///       perform adapter-specififc resource teardown. Resources must be left in
+///       a state where it safe for the adapter to be subsequently reinitialized
+///       with ::urAdapterGet
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
@@ -3404,8 +3393,6 @@ ur_result_t UR_APICALL urProgramCreateWithNativeHandle(
 /// @brief Create kernel object from a program.
 ///
 /// @details
-///     - Multiple calls to this function will return identical device handles,
-///       in the same order.
 ///     - The application may call this function from simultaneous threads.
 ///     - The implementation of this function should be lock-free.
 ///
@@ -7164,7 +7151,7 @@ ur_result_t UR_APICALL urCommandBufferAppendKernelLaunchExp(
 ///         + `pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
-ur_result_t UR_APICALL urCommandBufferAppendMemcpyUSMExp(
+ur_result_t UR_APICALL urCommandBufferAppendUSMMemcpyExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer, ///< [in] handle of the command-buffer object.
     void *pDst,         ///< [in] Location the data will be copied to.
@@ -7177,15 +7164,70 @@ ur_result_t UR_APICALL urCommandBufferAppendMemcpyUSMExp(
     ur_exp_command_buffer_sync_point_t
         *pSyncPoint ///< [out][optional] sync point associated with this command
     ) try {
-    auto pfnAppendMemcpyUSMExp =
-        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMemcpyUSMExp;
-    if (nullptr == pfnAppendMemcpyUSMExp) {
+    auto pfnAppendUSMMemcpyExp =
+        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendUSMMemcpyExp;
+    if (nullptr == pfnAppendUSMMemcpyExp) {
         return UR_RESULT_ERROR_UNINITIALIZED;
     }
 
-    return pfnAppendMemcpyUSMExp(hCommandBuffer, pDst, pSrc, size,
+    return pfnAppendUSMMemcpyExp(hCommandBuffer, pDst, pSrc, size,
                                  numSyncPointsInWaitList, pSyncPointWaitList,
                                  pSyncPoint);
+} catch (...) {
+    return exceptionToResult(std::current_exception());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Append a USM fill command to a command-buffer object
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hCommandBuffer`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pMemory`
+///         + `NULL == pPattern`
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_EXP
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `patternSize == 0 || size == 0`
+///         + `patternSize > size`
+///         + `(patternSize & (patternSize - 1)) != 0`
+///         + `size % patternSize != 0`
+///         + If `size` is higher than the allocation size of `ptr`
+///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP
+///         + `pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0`
+///         + `pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0`
+///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
+///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
+ur_result_t UR_APICALL urCommandBufferAppendUSMFillExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,   ///< [in] handle of the command-buffer object.
+    void *pMemory,        ///< [in] pointer to USM allocated memory to fill.
+    const void *pPattern, ///< [in] pointer to the fill pattern.
+    size_t patternSize,   ///< [in] size in bytes of the pattern.
+    size_t
+        size, ///< [in] fill size in bytes, must be a multiple of patternSize.
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+    ) try {
+    auto pfnAppendUSMFillExp =
+        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendUSMFillExp;
+    if (nullptr == pfnAppendUSMFillExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    return pfnAppendUSMFillExp(hCommandBuffer, pMemory, pPattern, patternSize,
+                               size, numSyncPointsInWaitList,
+                               pSyncPointWaitList, pSyncPoint);
 } catch (...) {
     return exceptionToResult(std::current_exception());
 }
@@ -7210,7 +7252,7 @@ ur_result_t UR_APICALL urCommandBufferAppendMemcpyUSMExp(
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
-ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyExp(
+ur_result_t UR_APICALL urCommandBufferAppendMemBufferCopyExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hSrcMem, ///< [in] The data to be copied.
@@ -7225,13 +7267,13 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyExp(
     ur_exp_command_buffer_sync_point_t
         *pSyncPoint ///< [out][optional] sync point associated with this command
     ) try {
-    auto pfnAppendMembufferCopyExp =
-        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMembufferCopyExp;
-    if (nullptr == pfnAppendMembufferCopyExp) {
+    auto pfnAppendMemBufferCopyExp =
+        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMemBufferCopyExp;
+    if (nullptr == pfnAppendMemBufferCopyExp) {
         return UR_RESULT_ERROR_UNINITIALIZED;
     }
 
-    return pfnAppendMembufferCopyExp(
+    return pfnAppendMemBufferCopyExp(
         hCommandBuffer, hSrcMem, hDstMem, srcOffset, dstOffset, size,
         numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
 } catch (...) {
@@ -7259,7 +7301,7 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyExp(
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
-ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteExp(
+ur_result_t UR_APICALL urCommandBufferAppendMemBufferWriteExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -7274,13 +7316,13 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteExp(
     ur_exp_command_buffer_sync_point_t
         *pSyncPoint ///< [out][optional] sync point associated with this command
     ) try {
-    auto pfnAppendMembufferWriteExp =
-        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMembufferWriteExp;
-    if (nullptr == pfnAppendMembufferWriteExp) {
+    auto pfnAppendMemBufferWriteExp =
+        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMemBufferWriteExp;
+    if (nullptr == pfnAppendMemBufferWriteExp) {
         return UR_RESULT_ERROR_UNINITIALIZED;
     }
 
-    return pfnAppendMembufferWriteExp(hCommandBuffer, hBuffer, offset, size,
+    return pfnAppendMemBufferWriteExp(hCommandBuffer, hBuffer, offset, size,
                                       pSrc, numSyncPointsInWaitList,
                                       pSyncPointWaitList, pSyncPoint);
 } catch (...) {
@@ -7308,7 +7350,7 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteExp(
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
-ur_result_t UR_APICALL urCommandBufferAppendMembufferReadExp(
+ur_result_t UR_APICALL urCommandBufferAppendMemBufferReadExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -7322,13 +7364,13 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferReadExp(
     ur_exp_command_buffer_sync_point_t
         *pSyncPoint ///< [out][optional] sync point associated with this command
     ) try {
-    auto pfnAppendMembufferReadExp =
-        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMembufferReadExp;
-    if (nullptr == pfnAppendMembufferReadExp) {
+    auto pfnAppendMemBufferReadExp =
+        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMemBufferReadExp;
+    if (nullptr == pfnAppendMemBufferReadExp) {
         return UR_RESULT_ERROR_UNINITIALIZED;
     }
 
-    return pfnAppendMembufferReadExp(hCommandBuffer, hBuffer, offset, size,
+    return pfnAppendMemBufferReadExp(hCommandBuffer, hBuffer, offset, size,
                                      pDst, numSyncPointsInWaitList,
                                      pSyncPointWaitList, pSyncPoint);
 } catch (...) {
@@ -7355,7 +7397,7 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferReadExp(
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
-ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyRectExp(
+ur_result_t UR_APICALL urCommandBufferAppendMemBufferCopyRectExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hSrcMem, ///< [in] The data to be copied.
@@ -7377,14 +7419,14 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyRectExp(
     ur_exp_command_buffer_sync_point_t
         *pSyncPoint ///< [out][optional] sync point associated with this command
     ) try {
-    auto pfnAppendMembufferCopyRectExp =
+    auto pfnAppendMemBufferCopyRectExp =
         ur_lib::context->urDdiTable.CommandBufferExp
-            .pfnAppendMembufferCopyRectExp;
-    if (nullptr == pfnAppendMembufferCopyRectExp) {
+            .pfnAppendMemBufferCopyRectExp;
+    if (nullptr == pfnAppendMemBufferCopyRectExp) {
         return UR_RESULT_ERROR_UNINITIALIZED;
     }
 
-    return pfnAppendMembufferCopyRectExp(
+    return pfnAppendMemBufferCopyRectExp(
         hCommandBuffer, hSrcMem, hDstMem, srcOrigin, dstOrigin, region,
         srcRowPitch, srcSlicePitch, dstRowPitch, dstSlicePitch,
         numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
@@ -7413,7 +7455,7 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferCopyRectExp(
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
-ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteRectExp(
+ur_result_t UR_APICALL urCommandBufferAppendMemBufferWriteRectExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -7441,14 +7483,14 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteRectExp(
     ur_exp_command_buffer_sync_point_t
         *pSyncPoint ///< [out][optional] sync point associated with this command
     ) try {
-    auto pfnAppendMembufferWriteRectExp =
+    auto pfnAppendMemBufferWriteRectExp =
         ur_lib::context->urDdiTable.CommandBufferExp
-            .pfnAppendMembufferWriteRectExp;
-    if (nullptr == pfnAppendMembufferWriteRectExp) {
+            .pfnAppendMemBufferWriteRectExp;
+    if (nullptr == pfnAppendMemBufferWriteRectExp) {
         return UR_RESULT_ERROR_UNINITIALIZED;
     }
 
-    return pfnAppendMembufferWriteRectExp(
+    return pfnAppendMemBufferWriteRectExp(
         hCommandBuffer, hBuffer, bufferOffset, hostOffset, region,
         bufferRowPitch, bufferSlicePitch, hostRowPitch, hostSlicePitch, pSrc,
         numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
@@ -7477,7 +7519,7 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferWriteRectExp(
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
-ur_result_t UR_APICALL urCommandBufferAppendMembufferReadRectExp(
+ur_result_t UR_APICALL urCommandBufferAppendMemBufferReadRectExp(
     ur_exp_command_buffer_handle_t
         hCommandBuffer,      ///< [in] handle of the command-buffer object.
     ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
@@ -7503,16 +7545,68 @@ ur_result_t UR_APICALL urCommandBufferAppendMembufferReadRectExp(
     ur_exp_command_buffer_sync_point_t
         *pSyncPoint ///< [out][optional] sync point associated with this command
     ) try {
-    auto pfnAppendMembufferReadRectExp =
+    auto pfnAppendMemBufferReadRectExp =
         ur_lib::context->urDdiTable.CommandBufferExp
-            .pfnAppendMembufferReadRectExp;
-    if (nullptr == pfnAppendMembufferReadRectExp) {
+            .pfnAppendMemBufferReadRectExp;
+    if (nullptr == pfnAppendMemBufferReadRectExp) {
         return UR_RESULT_ERROR_UNINITIALIZED;
     }
 
-    return pfnAppendMembufferReadRectExp(
+    return pfnAppendMemBufferReadRectExp(
         hCommandBuffer, hBuffer, bufferOffset, hostOffset, region,
         bufferRowPitch, bufferSlicePitch, hostRowPitch, hostSlicePitch, pDst,
+        numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
+} catch (...) {
+    return exceptionToResult(std::current_exception());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Append a memory fill command to a command-buffer object
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hCommandBuffer`
+///         + `NULL == hBuffer`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pPattern`
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP
+///         + `pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0`
+///         + `pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0`
+///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + If `offset + size` results in an out-of-bounds access.
+///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
+///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
+ur_result_t UR_APICALL urCommandBufferAppendMemBufferFillExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,      ///< [in] handle of the command-buffer object.
+    ur_mem_handle_t hBuffer, ///< [in] handle of the buffer object.
+    const void *pPattern,    ///< [in] pointer to the fill pattern.
+    size_t patternSize,      ///< [in] size in bytes of the pattern.
+    size_t offset,           ///< [in] offset into the buffer.
+    size_t
+        size, ///< [in] fill size in bytes, must be a multiple of patternSize.
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+    ) try {
+    auto pfnAppendMemBufferFillExp =
+        ur_lib::context->urDdiTable.CommandBufferExp.pfnAppendMemBufferFillExp;
+    if (nullptr == pfnAppendMemBufferFillExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    return pfnAppendMemBufferFillExp(
+        hCommandBuffer, hBuffer, pPattern, patternSize, offset, size,
         numSyncPointsInWaitList, pSyncPointWaitList, pSyncPoint);
 } catch (...) {
     return exceptionToResult(std::current_exception());

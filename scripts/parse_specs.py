@@ -18,8 +18,8 @@ from templates.helper import param_traits, type_traits, value_traits
 import ctypes
 import itertools
 
-default_version = "0.7"
-all_versions = ["0.6", "0.7"]
+default_version = "0.8"
+all_versions = ["0.6", "0.7", "0.8"]
 
 """
     preprocess object
@@ -872,6 +872,7 @@ def parse(section, version, tags, meta, ref):
     specs = []
 
     files = util.findFiles(path, "*.yml")
+    files.sort(key = lambda f: 0 if f.endswith('common.yml') else 1)
     registry = [f for f in files if f.endswith('registry.yml')][0]
 
     enum_extensions = []
