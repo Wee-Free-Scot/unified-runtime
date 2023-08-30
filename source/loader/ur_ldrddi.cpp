@@ -484,31 +484,6 @@ __urdlllocal ur_result_t UR_APICALL urDeviceGet(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// @brief Intercept function for urDeviceGetSelected
-__urdlllocal ur_result_t UR_APICALL urDeviceGetSelected(
-    ur_platform_handle_t hPlatform, ///< [in] handle of the platform instance
-    ur_device_type_t DeviceType,    ///< [in] the type of the devices.
-    uint32_t
-        NumEntries, ///< [in] the number of devices to be added to phDevices.
-    ///< If phDevices in not NULL then NumEntries should be greater than zero,
-    ///< otherwise ::UR_RESULT_ERROR_INVALID_VALUE,
-    ///< will be returned.
-    ur_device_handle_t *
-        phDevices, ///< [out][optional][range(0, NumEntries)] array of handle of devices.
-    ///< If NumEntries is less than the number of devices available, then only
-    ///< that number of devices will be retrieved.
-    uint32_t *pNumDevices ///< [out][optional] pointer to the number of devices.
-    ///< pNumDevices will be updated with the total number of selected devices
-    ///< available for the given platform.
-) {
-    ur_result_t result = UR_RESULT_SUCCESS;
-
-    /* DAN was here */
-
-    return result;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urDeviceGetInfo
 __urdlllocal ur_result_t UR_APICALL urDeviceGetInfo(
     ur_device_handle_t hDevice, ///< [in] handle of the device instance

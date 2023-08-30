@@ -188,4 +188,11 @@ ur_result_t urLoaderTearDown() {
 
     return UR_RESULT_SUCCESS;
 }
+ur_result_t urDeviceGetSelected(ur_platform_handle_t hPlatform,
+                                ur_device_type_t DeviceType,
+                                uint32_t NumEntries,
+                                ur_device_handle_t *phDevices,
+                                uint32_t *pNumDevices) {
+    return UR_RESULT_SUCCESS;
+}
 } // namespace ur_lib

@@ -1153,7 +1153,6 @@ inline std::ostream &operator<<(std::ostream &os, enum ur_function_t value) {
     case UR_FUNCTION_DEVICE_GET_SELECTED:
         os << "UR_FUNCTION_DEVICE_GET_SELECTED";
         break;
-
     default:
         os << "unknown enumerator";
         break;
