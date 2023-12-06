@@ -15630,11 +15630,11 @@ inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct 
 /// @brief Print operator for the ur_device_get_selected_params_t type
 /// @returns
 ///     std::ostream &
-inline std::ostream &operator<<(std::ostream &os, , [[maybe_unused]] const struct ur_device_get_selected_params_t *params) {
+inline std::ostream &operator<<(std::ostream &os, [[maybe_unused]] const struct ur_device_get_selected_params_t *params) {
 
     os << ".hPlatform = ";
 
-    ur_params::serializePtr(os, *(params->phPlatform));
+    ur::details::printPtr(os, *(params->phPlatform));
 
     os << ", ";
     os << ".DeviceType = ";
@@ -15654,14 +15654,14 @@ inline std::ostream &operator<<(std::ostream &os, , [[maybe_unused]] const struc
             os << ", ";
         }
 
-        ur_params::serializePtr(os, (*(params->pphDevices))[i]);
+        ur::details::printPtr(os, (*(params->pphDevices))[i]);
     }
     os << "}";
 
     os << ", ";
     os << ".pNumDevices = ";
 
-    ur_params::serializePtr(os, *(params->ppNumDevices));
+    ur::details::printPtr(os, *(params->ppNumDevices));
 
     return os;
 }
