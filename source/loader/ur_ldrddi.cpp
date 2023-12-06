@@ -65,6 +65,9 @@ __urdlllocal ur_result_t UR_APICALL urAdapterGet(
                 break;
             }
             adapterIndex++;
+            if (adapterIndex == NumEntries) {
+                break;
+            }
         }
     }
 
@@ -440,8 +443,8 @@ __urdlllocal ur_result_t UR_APICALL urDeviceGet(
     ur_device_type_t DeviceType,    ///< [in] the type of the devices.
     uint32_t
         NumEntries, ///< [in] the number of devices to be added to phDevices.
-    ///< If phDevices in not NULL then NumEntries should be greater than zero,
-    ///< otherwise ::UR_RESULT_ERROR_INVALID_VALUE,
+    ///< If phDevices is not NULL, then NumEntries should be greater than zero.
+    ///< Otherwise ::UR_RESULT_ERROR_INVALID_SIZE
     ///< will be returned.
     ur_device_handle_t *
         phDevices, ///< [out][optional][range(0, NumEntries)] array of handle of devices.
@@ -3849,7 +3852,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueEventsWaitWithBarrier(
 /// @brief Intercept function for urEnqueueMemBufferRead
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferRead(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
     bool blockingRead, ///< [in] indicates blocking (true), non-blocking (false)
     size_t offset,     ///< [in] offset in bytes in the buffer object
     size_t size,       ///< [in] size in bytes of data being read
@@ -3913,7 +3917,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferRead(
 /// @brief Intercept function for urEnqueueMemBufferWrite
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWrite(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
     bool
         blockingWrite, ///< [in] indicates blocking (true), non-blocking (false)
     size_t offset,     ///< [in] offset in bytes in the buffer object
@@ -3979,7 +3984,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWrite(
 /// @brief Intercept function for urEnqueueMemBufferReadRect
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferReadRect(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(bufferOrigin, region)] handle of the buffer object
     bool blockingRead, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t bufferOrigin, ///< [in] 3D offset in the buffer
     ur_rect_offset_t hostOrigin,   ///< [in] 3D offset in the host region
@@ -4056,7 +4062,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferReadRect(
 /// @brief Intercept function for urEnqueueMemBufferWriteRect
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWriteRect(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(bufferOrigin, region)] handle of the buffer object
     bool
         blockingWrite, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t bufferOrigin, ///< [in] 3D offset in the buffer
@@ -4135,9 +4142,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWriteRect(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueMemBufferCopy
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopy(
-    ur_queue_handle_t hQueue,   ///< [in] handle of the queue object
-    ur_mem_handle_t hBufferSrc, ///< [in] handle of the src buffer object
-    ur_mem_handle_t hBufferDst, ///< [in] handle of the dest buffer object
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    ur_mem_handle_t
+        hBufferSrc, ///< [in][bounds(srcOffset, size)] handle of the src buffer object
+    ur_mem_handle_t
+        hBufferDst, ///< [in][bounds(dstOffset, size)] handle of the dest buffer object
     size_t srcOffset, ///< [in] offset into hBufferSrc to begin copying from
     size_t dstOffset, ///< [in] offset info hBufferDst to begin copying into
     size_t size,      ///< [in] size in bytes of data being copied
@@ -4202,9 +4211,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopy(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueMemBufferCopyRect
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopyRect(
-    ur_queue_handle_t hQueue,   ///< [in] handle of the queue object
-    ur_mem_handle_t hBufferSrc, ///< [in] handle of the source buffer object
-    ur_mem_handle_t hBufferDst, ///< [in] handle of the dest buffer object
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    ur_mem_handle_t
+        hBufferSrc, ///< [in][bounds(srcOrigin, region)] handle of the source buffer object
+    ur_mem_handle_t
+        hBufferDst, ///< [in][bounds(dstOrigin, region)] handle of the dest buffer object
     ur_rect_offset_t srcOrigin, ///< [in] 3D offset in the source buffer
     ur_rect_offset_t dstOrigin, ///< [in] 3D offset in the destination buffer
     ur_rect_region_t
@@ -4280,10 +4291,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopyRect(
 /// @brief Intercept function for urEnqueueMemBufferFill
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferFill(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
-    const void *pPattern,     ///< [in] pointer to the fill pattern
-    size_t patternSize,       ///< [in] size in bytes of the pattern
-    size_t offset,            ///< [in] offset into the buffer
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
+    const void *pPattern, ///< [in] pointer to the fill pattern
+    size_t patternSize,   ///< [in] size in bytes of the pattern
+    size_t offset,        ///< [in] offset into the buffer
     size_t size, ///< [in] fill size in bytes, must be a multiple of patternSize
     uint32_t numEventsInWaitList, ///< [in] size of the event wait list
     const ur_event_handle_t *
@@ -4344,7 +4356,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferFill(
 /// @brief Intercept function for urEnqueueMemImageRead
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageRead(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hImage,   ///< [in] handle of the image object
+    ur_mem_handle_t
+        hImage, ///< [in][bounds(origin, region)] handle of the image object
     bool blockingRead, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t
         origin, ///< [in] defines the (x,y,z) offset in pixels in the 1D, 2D, or 3D image
@@ -4413,7 +4426,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageRead(
 /// @brief Intercept function for urEnqueueMemImageWrite
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageWrite(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hImage,   ///< [in] handle of the image object
+    ur_mem_handle_t
+        hImage, ///< [in][bounds(origin, region)] handle of the image object
     bool
         blockingWrite, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t
@@ -4482,9 +4496,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageWrite(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueMemImageCopy
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageCopy(
-    ur_queue_handle_t hQueue,  ///< [in] handle of the queue object
-    ur_mem_handle_t hImageSrc, ///< [in] handle of the src image object
-    ur_mem_handle_t hImageDst, ///< [in] handle of the dest image object
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    ur_mem_handle_t
+        hImageSrc, ///< [in][bounds(srcOrigin, region)] handle of the src image object
+    ur_mem_handle_t
+        hImageDst, ///< [in][bounds(dstOrigin, region)] handle of the dest image object
     ur_rect_offset_t
         srcOrigin, ///< [in] defines the (x,y,z) offset in pixels in the source 1D, 2D, or 3D
                    ///< image
@@ -4556,7 +4572,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageCopy(
 /// @brief Intercept function for urEnqueueMemBufferMap
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferMap(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
     bool blockingMap, ///< [in] indicates blocking (true), non-blocking (false)
     ur_map_flags_t mapFlags, ///< [in] flags for read, write, readwrite mapping
     size_t offset, ///< [in] offset in bytes of the buffer region being mapped
@@ -4683,7 +4700,7 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemUnmap(
 /// @brief Intercept function for urEnqueueUSMFill
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    void *ptr,                ///< [in] pointer to USM memory object
+    void *pMem, ///< [in][bounds(0, size)] pointer to USM memory object
     size_t
         patternSize, ///< [in] the size in bytes of the pattern. Must be a power of 2 and less
                      ///< than or equal to width.
@@ -4723,7 +4740,7 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill(
 
     // forward to device-platform
     result =
-        pfnUSMFill(hQueue, ptr, patternSize, pPattern, size,
+        pfnUSMFill(hQueue, pMem, patternSize, pPattern, size,
                    numEventsInWaitList, phEventWaitListLocal.data(), phEvent);
 
     if (UR_RESULT_SUCCESS != result) {
@@ -4748,9 +4765,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill(
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
     bool blocking,            ///< [in] blocking or non-blocking copy
-    void *pDst,       ///< [in] pointer to the destination USM memory object
-    const void *pSrc, ///< [in] pointer to the source USM memory object
-    size_t size,      ///< [in] size in bytes to be copied
+    void *
+        pDst, ///< [in][bounds(0, size)] pointer to the destination USM memory object
+    const void *
+        pSrc, ///< [in][bounds(0, size)] pointer to the source USM memory object
+    size_t size,                  ///< [in] size in bytes to be copied
     uint32_t numEventsInWaitList, ///< [in] size of the event wait list
     const ur_event_handle_t *
         phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
@@ -4806,9 +4825,10 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueUSMPrefetch
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMPrefetch(
-    ur_queue_handle_t hQueue,       ///< [in] handle of the queue object
-    const void *pMem,               ///< [in] pointer to the USM memory object
-    size_t size,                    ///< [in] size in bytes to be fetched
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    const void
+        *pMem,   ///< [in][bounds(0, size)] pointer to the USM memory object
+    size_t size, ///< [in] size in bytes to be fetched
     ur_usm_migration_flags_t flags, ///< [in] USM prefetch flags
     uint32_t numEventsInWaitList,   ///< [in] size of the event wait list
     const ur_event_handle_t *
@@ -4864,9 +4884,10 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMPrefetch(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueUSMAdvise
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMAdvise(
-    ur_queue_handle_t hQueue,     ///< [in] handle of the queue object
-    const void *pMem,             ///< [in] pointer to the USM memory object
-    size_t size,                  ///< [in] size in bytes to be advised
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    const void
+        *pMem,   ///< [in][bounds(0, size)] pointer to the USM memory object
+    size_t size, ///< [in] size in bytes to be advised
     ur_usm_advice_flags_t advice, ///< [in] USM memory advice
     ur_event_handle_t *
         phEvent ///< [out][optional] return an event object that identifies this particular
@@ -4908,7 +4929,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMAdvise(
 /// @brief Intercept function for urEnqueueUSMFill2D
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill2D(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue to submit to.
-    void *pMem,               ///< [in] pointer to memory to be filled.
+    void *
+        pMem, ///< [in][bounds(0, pitch * height)] pointer to memory to be filled.
     size_t
         pitch, ///< [in] the total width of the destination memory including padding.
     size_t
@@ -4977,10 +4999,13 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill2D(
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy2D(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue to submit to.
     bool blocking, ///< [in] indicates if this operation should block the host.
-    void *pDst,    ///< [in] pointer to memory where data will be copied.
+    void *
+        pDst, ///< [in][bounds(0, dstPitch * height)] pointer to memory where data will
+              ///< be copied.
     size_t
         dstPitch, ///< [in] the total width of the source memory including padding.
-    const void *pSrc, ///< [in] pointer to memory to be copied.
+    const void *
+        pSrc, ///< [in][bounds(0, srcPitch * height)] pointer to memory to be copied.
     size_t
         srcPitch, ///< [in] the total width of the source memory including padding.
     size_t width,  ///< [in] the width in bytes of each row to be copied.
@@ -5271,7 +5296,7 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueWriteHostPipe(
     ///< events that must be complete before the host pipe write.
     ///< If nullptr, the numEventsInWaitList must be 0, indicating that no wait event.
     ur_event_handle_t *
-        phEvent ///< [out] returns an event object that identifies this write command
+        phEvent ///< [out][optional] returns an event object that identifies this write command
     ///< and can be used to query or queue a wait for this command to complete.
 ) {
     ur_result_t result = UR_RESULT_SUCCESS;
@@ -5308,8 +5333,10 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueWriteHostPipe(
 
     try {
         // convert platform handle to loader handle
-        *phEvent = reinterpret_cast<ur_event_handle_t>(
-            ur_event_factory.getInstance(*phEvent, dditable));
+        if (nullptr != phEvent) {
+            *phEvent = reinterpret_cast<ur_event_handle_t>(
+                ur_event_factory.getInstance(*phEvent, dditable));
+        }
     } catch (std::bad_alloc &) {
         result = UR_RESULT_ERROR_OUT_OF_HOST_MEMORY;
     }
@@ -6782,6 +6809,86 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferFillExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urCommandBufferAppendUSMPrefetchExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendUSMPrefetchExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,  ///< [in] handle of the command-buffer object.
+    const void *pMemory, ///< [in] pointer to USM allocated memory to prefetch.
+    size_t size,         ///< [in] size in bytes to be fetched.
+    ur_usm_migration_flags_t flags, ///< [in] USM prefetch flags
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+) {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // extract platform's function pointer table
+    auto dditable =
+        reinterpret_cast<ur_exp_command_buffer_object_t *>(hCommandBuffer)
+            ->dditable;
+    auto pfnAppendUSMPrefetchExp =
+        dditable->ur.CommandBufferExp.pfnAppendUSMPrefetchExp;
+    if (nullptr == pfnAppendUSMPrefetchExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    // convert loader handle to platform handle
+    hCommandBuffer =
+        reinterpret_cast<ur_exp_command_buffer_object_t *>(hCommandBuffer)
+            ->handle;
+
+    // forward to device-platform
+    result = pfnAppendUSMPrefetchExp(hCommandBuffer, pMemory, size, flags,
+                                     numSyncPointsInWaitList,
+                                     pSyncPointWaitList, pSyncPoint);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urCommandBufferAppendUSMAdviseExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendUSMAdviseExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,           ///< [in] handle of the command-buffer object.
+    const void *pMemory,          ///< [in] pointer to the USM memory object.
+    size_t size,                  ///< [in] size in bytes to be advised.
+    ur_usm_advice_flags_t advice, ///< [in] USM memory advice
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+) {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // extract platform's function pointer table
+    auto dditable =
+        reinterpret_cast<ur_exp_command_buffer_object_t *>(hCommandBuffer)
+            ->dditable;
+    auto pfnAppendUSMAdviseExp =
+        dditable->ur.CommandBufferExp.pfnAppendUSMAdviseExp;
+    if (nullptr == pfnAppendUSMAdviseExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    // convert loader handle to platform handle
+    hCommandBuffer =
+        reinterpret_cast<ur_exp_command_buffer_object_t *>(hCommandBuffer)
+            ->handle;
+
+    // forward to device-platform
+    result = pfnAppendUSMAdviseExp(hCommandBuffer, pMemory, size, advice,
+                                   numSyncPointsInWaitList, pSyncPointWaitList,
+                                   pSyncPoint);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urCommandBufferEnqueueExp
 __urdlllocal ur_result_t UR_APICALL urCommandBufferEnqueueExp(
     ur_exp_command_buffer_handle_t
@@ -6839,6 +6946,241 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferEnqueueExp(
             *phEvent = reinterpret_cast<ur_event_handle_t>(
                 ur_event_factory.getInstance(*phEvent, dditable));
         }
+    } catch (std::bad_alloc &) {
+        result = UR_RESULT_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urEnqueueCooperativeKernelLaunchExp
+__urdlllocal ur_result_t UR_APICALL urEnqueueCooperativeKernelLaunchExp(
+    ur_queue_handle_t hQueue,   ///< [in] handle of the queue object
+    ur_kernel_handle_t hKernel, ///< [in] handle of the kernel object
+    uint32_t
+        workDim, ///< [in] number of dimensions, from 1 to 3, to specify the global and
+                 ///< work-group work-items
+    const size_t *
+        pGlobalWorkOffset, ///< [in] pointer to an array of workDim unsigned values that specify the
+    ///< offset used to calculate the global ID of a work-item
+    const size_t *
+        pGlobalWorkSize, ///< [in] pointer to an array of workDim unsigned values that specify the
+    ///< number of global work-items in workDim that will execute the kernel
+    ///< function
+    const size_t *
+        pLocalWorkSize, ///< [in][optional] pointer to an array of workDim unsigned values that
+    ///< specify the number of local work-items forming a work-group that will
+    ///< execute the kernel function.
+    ///< If nullptr, the runtime implementation will choose the work-group
+    ///< size.
+    uint32_t numEventsInWaitList, ///< [in] size of the event wait list
+    const ur_event_handle_t *
+        phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
+    ///< events that must be complete before the kernel execution.
+    ///< If nullptr, the numEventsInWaitList must be 0, indicating that no wait
+    ///< event.
+    ur_event_handle_t *
+        phEvent ///< [out][optional] return an event object that identifies this particular
+                ///< kernel execution instance.
+) {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // extract platform's function pointer table
+    auto dditable = reinterpret_cast<ur_queue_object_t *>(hQueue)->dditable;
+    auto pfnCooperativeKernelLaunchExp =
+        dditable->ur.EnqueueExp.pfnCooperativeKernelLaunchExp;
+    if (nullptr == pfnCooperativeKernelLaunchExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    // convert loader handle to platform handle
+    hQueue = reinterpret_cast<ur_queue_object_t *>(hQueue)->handle;
+
+    // convert loader handle to platform handle
+    hKernel = reinterpret_cast<ur_kernel_object_t *>(hKernel)->handle;
+
+    // convert loader handles to platform handles
+    auto phEventWaitListLocal =
+        std::vector<ur_event_handle_t>(numEventsInWaitList);
+    for (size_t i = 0; i < numEventsInWaitList; ++i) {
+        phEventWaitListLocal[i] =
+            reinterpret_cast<ur_event_object_t *>(phEventWaitList[i])->handle;
+    }
+
+    // forward to device-platform
+    result = pfnCooperativeKernelLaunchExp(
+        hQueue, hKernel, workDim, pGlobalWorkOffset, pGlobalWorkSize,
+        pLocalWorkSize, numEventsInWaitList, phEventWaitListLocal.data(),
+        phEvent);
+
+    if (UR_RESULT_SUCCESS != result) {
+        return result;
+    }
+
+    try {
+        // convert platform handle to loader handle
+        if (nullptr != phEvent) {
+            *phEvent = reinterpret_cast<ur_event_handle_t>(
+                ur_event_factory.getInstance(*phEvent, dditable));
+        }
+    } catch (std::bad_alloc &) {
+        result = UR_RESULT_ERROR_OUT_OF_HOST_MEMORY;
+    }
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urKernelSuggestMaxCooperativeGroupCountExp
+__urdlllocal ur_result_t UR_APICALL urKernelSuggestMaxCooperativeGroupCountExp(
+    ur_kernel_handle_t hKernel, ///< [in] handle of the kernel object
+    uint32_t *pGroupCountRet    ///< [out] pointer to maximum number of groups
+) {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // extract platform's function pointer table
+    auto dditable = reinterpret_cast<ur_kernel_object_t *>(hKernel)->dditable;
+    auto pfnSuggestMaxCooperativeGroupCountExp =
+        dditable->ur.KernelExp.pfnSuggestMaxCooperativeGroupCountExp;
+    if (nullptr == pfnSuggestMaxCooperativeGroupCountExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    // convert loader handle to platform handle
+    hKernel = reinterpret_cast<ur_kernel_object_t *>(hKernel)->handle;
+
+    // forward to device-platform
+    result = pfnSuggestMaxCooperativeGroupCountExp(hKernel, pGroupCountRet);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urProgramBuildExp
+__urdlllocal ur_result_t UR_APICALL urProgramBuildExp(
+    ur_program_handle_t hProgram, ///< [in] Handle of the program to build.
+    uint32_t numDevices,          ///< [in] number of devices
+    ur_device_handle_t *
+        phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    const char *
+        pOptions ///< [in][optional] pointer to build options null-terminated string.
+) {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // extract platform's function pointer table
+    auto dditable = reinterpret_cast<ur_program_object_t *>(hProgram)->dditable;
+    auto pfnBuildExp = dditable->ur.ProgramExp.pfnBuildExp;
+    if (nullptr == pfnBuildExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    // convert loader handle to platform handle
+    hProgram = reinterpret_cast<ur_program_object_t *>(hProgram)->handle;
+
+    // convert loader handles to platform handles
+    auto phDevicesLocal = std::vector<ur_device_handle_t>(numDevices);
+    for (size_t i = 0; i < numDevices; ++i) {
+        phDevicesLocal[i] =
+            reinterpret_cast<ur_device_object_t *>(phDevices[i])->handle;
+    }
+
+    // forward to device-platform
+    result = pfnBuildExp(hProgram, numDevices, phDevicesLocal.data(), pOptions);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urProgramCompileExp
+__urdlllocal ur_result_t UR_APICALL urProgramCompileExp(
+    ur_program_handle_t
+        hProgram,        ///< [in][out] handle of the program to compile.
+    uint32_t numDevices, ///< [in] number of devices
+    ur_device_handle_t *
+        phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    const char *
+        pOptions ///< [in][optional] pointer to build options null-terminated string.
+) {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // extract platform's function pointer table
+    auto dditable = reinterpret_cast<ur_program_object_t *>(hProgram)->dditable;
+    auto pfnCompileExp = dditable->ur.ProgramExp.pfnCompileExp;
+    if (nullptr == pfnCompileExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    // convert loader handle to platform handle
+    hProgram = reinterpret_cast<ur_program_object_t *>(hProgram)->handle;
+
+    // convert loader handles to platform handles
+    auto phDevicesLocal = std::vector<ur_device_handle_t>(numDevices);
+    for (size_t i = 0; i < numDevices; ++i) {
+        phDevicesLocal[i] =
+            reinterpret_cast<ur_device_object_t *>(phDevices[i])->handle;
+    }
+
+    // forward to device-platform
+    result =
+        pfnCompileExp(hProgram, numDevices, phDevicesLocal.data(), pOptions);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urProgramLinkExp
+__urdlllocal ur_result_t UR_APICALL urProgramLinkExp(
+    ur_context_handle_t hContext, ///< [in] handle of the context instance.
+    uint32_t numDevices,          ///< [in] number of devices
+    ur_device_handle_t *
+        phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    uint32_t count, ///< [in] number of program handles in `phPrograms`.
+    const ur_program_handle_t *
+        phPrograms, ///< [in][range(0, count)] pointer to array of program handles.
+    const char *
+        pOptions, ///< [in][optional] pointer to linker options null-terminated string.
+    ur_program_handle_t
+        *phProgram ///< [out] pointer to handle of program object created.
+) {
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // extract platform's function pointer table
+    auto dditable = reinterpret_cast<ur_context_object_t *>(hContext)->dditable;
+    auto pfnLinkExp = dditable->ur.ProgramExp.pfnLinkExp;
+    if (nullptr == pfnLinkExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    // convert loader handle to platform handle
+    hContext = reinterpret_cast<ur_context_object_t *>(hContext)->handle;
+
+    // convert loader handles to platform handles
+    auto phDevicesLocal = std::vector<ur_device_handle_t>(numDevices);
+    for (size_t i = 0; i < numDevices; ++i) {
+        phDevicesLocal[i] =
+            reinterpret_cast<ur_device_object_t *>(phDevices[i])->handle;
+    }
+
+    // convert loader handles to platform handles
+    auto phProgramsLocal = std::vector<ur_program_handle_t>(count);
+    for (size_t i = 0; i < count; ++i) {
+        phProgramsLocal[i] =
+            reinterpret_cast<ur_program_object_t *>(phPrograms[i])->handle;
+    }
+
+    // forward to device-platform
+    result = pfnLinkExp(hContext, numDevices, phDevicesLocal.data(), count,
+                        phProgramsLocal.data(), pOptions, phProgram);
+
+    if (UR_RESULT_SUCCESS != result) {
+        return result;
+    }
+
+    try {
+        // convert platform handle to loader handle
+        *phProgram = reinterpret_cast<ur_program_handle_t>(
+            ur_program_factory.getInstance(*phProgram, dditable));
     } catch (std::bad_alloc &) {
         result = UR_RESULT_ERROR_OUT_OF_HOST_MEMORY;
     }
@@ -7221,6 +7563,10 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetCommandBufferExpProcAddrTable(
                 ur_loader::urCommandBufferAppendMemBufferReadRectExp;
             pDdiTable->pfnAppendMemBufferFillExp =
                 ur_loader::urCommandBufferAppendMemBufferFillExp;
+            pDdiTable->pfnAppendUSMPrefetchExp =
+                ur_loader::urCommandBufferAppendUSMPrefetchExp;
+            pDdiTable->pfnAppendUSMAdviseExp =
+                ur_loader::urCommandBufferAppendUSMAdviseExp;
             pDdiTable->pfnEnqueueExp = ur_loader::urCommandBufferEnqueueExp;
         } else {
             // return pointers directly to platform's DDIs
@@ -7377,6 +7723,61 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetEnqueueProcAddrTable(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Exported function for filling application's EnqueueExp table
+///        with current process' addresses
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_VERSION
+UR_DLLEXPORT ur_result_t UR_APICALL urGetEnqueueExpProcAddrTable(
+    ur_api_version_t version, ///< [in] API version requested
+    ur_enqueue_exp_dditable_t
+        *pDdiTable ///< [in,out] pointer to table of DDI function pointers
+) {
+    if (nullptr == pDdiTable) {
+        return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+    }
+
+    if (ur_loader::context->version < version) {
+        return UR_RESULT_ERROR_UNSUPPORTED_VERSION;
+    }
+
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // Load the device-platform DDI tables
+    for (auto &platform : ur_loader::context->platforms) {
+        if (platform.initStatus != UR_RESULT_SUCCESS) {
+            continue;
+        }
+        auto getTable = reinterpret_cast<ur_pfnGetEnqueueExpProcAddrTable_t>(
+            ur_loader::LibLoader::getFunctionPtr(
+                platform.handle.get(), "urGetEnqueueExpProcAddrTable"));
+        if (!getTable) {
+            continue;
+        }
+        platform.initStatus =
+            getTable(version, &platform.dditable.ur.EnqueueExp);
+    }
+
+    if (UR_RESULT_SUCCESS == result) {
+        if (ur_loader::context->platforms.size() != 1 ||
+            ur_loader::context->forceIntercept) {
+            // return pointers to loader's DDIs
+            pDdiTable->pfnCooperativeKernelLaunchExp =
+                ur_loader::urEnqueueCooperativeKernelLaunchExp;
+        } else {
+            // return pointers directly to platform's DDIs
+            *pDdiTable =
+                ur_loader::context->platforms.front().dditable.ur.EnqueueExp;
+        }
+    }
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Exported function for filling application's Event table
 ///        with current process' addresses
 ///
@@ -7500,6 +7901,61 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetKernelProcAddrTable(
             // return pointers directly to platform's DDIs
             *pDdiTable =
                 ur_loader::context->platforms.front().dditable.ur.Kernel;
+        }
+    }
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Exported function for filling application's KernelExp table
+///        with current process' addresses
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_VERSION
+UR_DLLEXPORT ur_result_t UR_APICALL urGetKernelExpProcAddrTable(
+    ur_api_version_t version, ///< [in] API version requested
+    ur_kernel_exp_dditable_t
+        *pDdiTable ///< [in,out] pointer to table of DDI function pointers
+) {
+    if (nullptr == pDdiTable) {
+        return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+    }
+
+    if (ur_loader::context->version < version) {
+        return UR_RESULT_ERROR_UNSUPPORTED_VERSION;
+    }
+
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // Load the device-platform DDI tables
+    for (auto &platform : ur_loader::context->platforms) {
+        if (platform.initStatus != UR_RESULT_SUCCESS) {
+            continue;
+        }
+        auto getTable = reinterpret_cast<ur_pfnGetKernelExpProcAddrTable_t>(
+            ur_loader::LibLoader::getFunctionPtr(
+                platform.handle.get(), "urGetKernelExpProcAddrTable"));
+        if (!getTable) {
+            continue;
+        }
+        platform.initStatus =
+            getTable(version, &platform.dditable.ur.KernelExp);
+    }
+
+    if (UR_RESULT_SUCCESS == result) {
+        if (ur_loader::context->platforms.size() != 1 ||
+            ur_loader::context->forceIntercept) {
+            // return pointers to loader's DDIs
+            pDdiTable->pfnSuggestMaxCooperativeGroupCountExp =
+                ur_loader::urKernelSuggestMaxCooperativeGroupCountExp;
+        } else {
+            // return pointers directly to platform's DDIs
+            *pDdiTable =
+                ur_loader::context->platforms.front().dditable.ur.KernelExp;
         }
     }
 
@@ -7749,6 +8205,62 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetProgramProcAddrTable(
             // return pointers directly to platform's DDIs
             *pDdiTable =
                 ur_loader::context->platforms.front().dditable.ur.Program;
+        }
+    }
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Exported function for filling application's ProgramExp table
+///        with current process' addresses
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_VERSION
+UR_DLLEXPORT ur_result_t UR_APICALL urGetProgramExpProcAddrTable(
+    ur_api_version_t version, ///< [in] API version requested
+    ur_program_exp_dditable_t
+        *pDdiTable ///< [in,out] pointer to table of DDI function pointers
+) {
+    if (nullptr == pDdiTable) {
+        return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+    }
+
+    if (ur_loader::context->version < version) {
+        return UR_RESULT_ERROR_UNSUPPORTED_VERSION;
+    }
+
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    // Load the device-platform DDI tables
+    for (auto &platform : ur_loader::context->platforms) {
+        if (platform.initStatus != UR_RESULT_SUCCESS) {
+            continue;
+        }
+        auto getTable = reinterpret_cast<ur_pfnGetProgramExpProcAddrTable_t>(
+            ur_loader::LibLoader::getFunctionPtr(
+                platform.handle.get(), "urGetProgramExpProcAddrTable"));
+        if (!getTable) {
+            continue;
+        }
+        platform.initStatus =
+            getTable(version, &platform.dditable.ur.ProgramExp);
+    }
+
+    if (UR_RESULT_SUCCESS == result) {
+        if (ur_loader::context->platforms.size() != 1 ||
+            ur_loader::context->forceIntercept) {
+            // return pointers to loader's DDIs
+            pDdiTable->pfnBuildExp = ur_loader::urProgramBuildExp;
+            pDdiTable->pfnCompileExp = ur_loader::urProgramCompileExp;
+            pDdiTable->pfnLinkExp = ur_loader::urProgramLinkExp;
+        } else {
+            // return pointers directly to platform's DDIs
+            *pDdiTable =
+                ur_loader::context->platforms.front().dditable.ur.ProgramExp;
         }
     }
 

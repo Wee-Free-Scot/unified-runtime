@@ -97,6 +97,7 @@ def _generate_api_cpp(incpath, srcpath, namespace, tags, version, revision, spec
     loc = _mako_api_h(incpath, namespace, tags, version, revision, specs, meta)
     loc += _mako_api_cpp(srcpath, namespace, tags, version, revision, specs, meta)
     loc += _mako_ddi_h(incpath, namespace, tags, version, revision, specs, meta)
+    loc += _mako_print_hpp(incpath, namespace, tags, version, revision, specs, meta)
 
     return loc
 
@@ -278,15 +279,54 @@ def _mako_tracing_layer_cpp(path, namespace, tags, version, specs, meta):
 """
     generates c/c++ files from the specification documents
 """
-def _mako_params_hpp(path, namespace, tags, version, specs, meta):
-    template = "params.hpp.mako"
+def _mako_print_hpp(path, namespace, tags, version, revision, specs, meta):
+    template = "print.hpp.mako"
     fin = os.path.join(templates_dir, template)
 
-    name = "%s_params"%(namespace)
+    name = "%s_print"%(namespace)
     filename = "%s.hpp"%(name)
     fout = os.path.join(path, filename)
 
     print("Generating %s..."%fout)
+    return util.makoWrite(
+        fin, fout,
+        name=name,
+        ver=version,
+        rev=revision,
+        namespace=namespace,
+        tags=tags,
+        specs=specs,
+        meta=meta)
+
+"""
+Entry-point:
+    generates tools code
+"""
+def _mako_info_hpp(path, namespace, tags, version, specs, meta):
+    fin = os.path.join(templates_dir, "tools-info.hpp.mako")
+    name = f"{namespace}info"
+    filename = f"{name}.hpp"
+    fout = os.path.join(path, filename)
+    print("Generating %s..." % fout)
+    return util.makoWrite(
+        fin, fout,
+        name=name,
+        ver=version,
+        namespace=namespace,
+        tags=tags,
+        specs=specs,
+        meta=meta)
+
+"""
+Entry-point:
+    generates linker version scripts
+"""
+def _mako_linker_scripts(path, ext, namespace, tags, version, specs, meta):
+    name = "adapter"
+    filename = f"{name}.{ext}.in"
+    fin = os.path.join(templates_dir, f"{filename}.mako")
+    fout = os.path.join(path, filename)
+    print("Generating %s..." % fout)
     return util.makoWrite(
         fin, fout,
         name=name,
@@ -330,6 +370,8 @@ def generate_adapters(path, section, namespace, tags, version, specs, meta):
 
     loc = 0
     loc += _mako_null_adapter_cpp(dstpath, namespace, tags, version, specs, meta)
+    loc += _mako_linker_scripts(dstpath, "map", namespace, tags, version, specs, meta)
+    loc += _mako_linker_scripts(dstpath, "def", namespace, tags, version, specs, meta)
     print("Generated %s lines of code.\n"%loc)
 
 """
@@ -361,6 +403,17 @@ def generate_common(path, section, namespace, tags, version, specs, meta):
     os.makedirs(layer_dstpath, exist_ok=True)
 
     loc = 0
-    loc += _mako_params_hpp(layer_dstpath, namespace, tags, version, specs, meta)
     print("COMMON Generated %s lines of code.\n"%loc)
 
+"""
+Entry-point:
+    generates tools for unified_runtime
+"""
+def generate_tools(path, section, namespace, tags, version, specs, meta):
+    loc = 0
+
+    infodir = os.path.join(path, f"{namespace}info")
+    os.makedirs(infodir, exist_ok=True)
+    loc += _mako_info_hpp(infodir, namespace, tags, version, specs, meta)
+
+    print("TOOLS Generated %s lines of code.\n" % loc)

@@ -2,6 +2,10 @@ name: "CodeQL"
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   analyze-ubuntu:
     name: Analyze on Ubuntu
@@ -11,8 +15,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        language: [ 'cpp', 'python' ]
 
     steps:
     - name: Checkout repository
@@ -21,7 +23,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: ${{ matrix.language }}
+        languages: cpp, python
 
     - name: Install pip packages
       run: pip install -r third_party/requirements.txt
@@ -34,8 +36,6 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:${{matrix.language}}"
 
   analyze-windows:
     name: Analyze on Windows
@@ -45,8 +45,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        language: [ 'cpp', 'python' ]
 
     steps:
     - name: Checkout repository
@@ -55,7 +53,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: ${{ matrix.language }}
+        languages: cpp, python
 
     - name: Install pip packages
       run: python3 -m pip install -r third_party/requirements.txt
@@ -68,5 +66,3 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:${{matrix.language}}"

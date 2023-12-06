@@ -61,7 +61,7 @@ void context_t::parseEnvEnabledLayers() {
 void context_t::initLayers() const {
     for (auto &l : layers) {
         if (l->isAvailable()) {
-            l->init(&context->urDdiTable, enabledLayerNames);
+            l->init(&context->urDdiTable, enabledLayerNames, codelocData);
         }
     }
 }
@@ -75,9 +75,8 @@ void context_t::tearDownLayers() const {
 }
 
 //////////////////////////////////////////////////////////////////////////
-__urdlllocal ur_result_t
-context_t::Init(ur_device_init_flags_t device_flags,
-                ur_loader_config_handle_t hLoaderConfig) {
+__urdlllocal ur_result_t context_t::Init(
+    ur_device_init_flags_t, ur_loader_config_handle_t hLoaderConfig) {
     ur_result_t result;
     const char *logger_name = "loader";
     logger::init(logger_name);
@@ -90,6 +89,7 @@ context_t::Init(ur_device_init_flags_t device_flags,
     }
 
     if (hLoaderConfig) {
+        codelocData = hLoaderConfig->codelocData;
         enabledLayerNames.merge(hLoaderConfig->getEnabledLayerNames());
     }
 
@@ -194,6 +194,24 @@ ur_result_t urLoaderTearDown() {
 
     return UR_RESULT_SUCCESS;
 }
+
+ur_result_t
+urLoaderConfigSetCodeLocationCallback(ur_loader_config_handle_t hLoaderConfig,
+                                      ur_code_location_callback_t pfnCodeloc,
+                                      void *pUserData) {
+    if (!hLoaderConfig) {
+        return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+    }
+    if (!pfnCodeloc) {
+        return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+    }
+
+    hLoaderConfig->codelocData.codelocCb = pfnCodeloc;
+    hLoaderConfig->codelocData.codelocUserdata = pUserData;
+
+    return UR_RESULT_SUCCESS;
+}
+
 ur_result_t urDeviceGetSelected(ur_platform_handle_t hPlatform,
                                 ur_device_type_t DeviceType,
                                 uint32_t NumEntries,

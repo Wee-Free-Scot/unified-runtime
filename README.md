@@ -4,26 +4,35 @@
 [![CodeQL](https://github.com/oneapi-src/unified-runtime/actions/workflows/codeql.yml/badge.svg)](https://github.com/oneapi-src/unified-runtime/actions/workflows/codeql.yml)
 [![Bandit](https://github.com/oneapi-src/unified-runtime/actions/workflows/bandit.yml/badge.svg)](https://github.com/oneapi-src/unified-runtime/actions/workflows/bandit.yml)
 [![Coverity](https://scan.coverity.com/projects/28213/badge.svg)](https://scan.coverity.com/projects/oneapi-src-unified-runtime)
+[![codecov.io](https://codecov.io/github/oneapi-src/unified-runtime/coverage.svg?branch=main)](https://codecov.io/github/oneapi-src/unified-runtime?branch=master)
+
+## Adapters
+Adapter implementations for Unified Runtime currently reside in the [SYCL repository](https://github.com/intel/llvm/tree/sycl/sycl/plugins/unified_runtime/ur). This branch contains scripts to automatically
+fetch and build them directly in the UR tree. The adapters are disabled by default,
+see cmake options for details.
 
 <!-- TODO: add general description and purpose of the project -->
 
 ## Table of contents
 
-1. [Contents of the repo](#contents-of-the-repo)
-2. [Integration](#integration)
+- [Unified Runtime](#unified-runtime)
+  - [Adapters](#adapters)
+  - [Table of contents](#table-of-contents)
+  - [Contents of the repo](#contents-of-the-repo)
+  - [Integration](#integration)
     - [Weekly tags](#weekly-tags)
-3. [Third-Party tools](#third-party-tools)
-4. [Building](#building)
+  - [Third-Party tools](#third-party-tools)
+  - [Building](#building)
     - [Requirements](#requirements)
     - [Windows](#windows)
     - [Linux](#linux)
     - [CMake standard options](#cmake-standard-options)
     - [Additional make targets](#additional-make-targets)
-5. [Contributions](#contributions)
+  - [Contributions](#contributions)
     - [Adapter naming convention](#adapter-naming-convention)
     - [Source code generation](#source-code-generation)
     - [Documentation](#documentation)
-
+6. [Release Process](#release-process)
 
 ## Contents of the repo
 
@@ -72,15 +81,18 @@ Tools can be acquired via instructions in [third_party](/third_party/README.md).
 
 ## Building
 
+The requirements and instructions below are for building the project from source
+without any modifications. To make modifications to the specification, please
+see the
+[Contribution Guide](https://oneapi-src.github.io/unified-runtime/core/CONTRIB.html)
+for more detailed instructions on the correct setup.
+
 ### Requirements
 
 Required packages:
 - C++ compiler with C++17 support
 - [CMake](https://cmake.org/) >= 3.14.0
 - Python v3.6.6 or later
-
-For development and contributions:
-- clang-format-15.0 (can be installed with `python -m pip install clang-format==15.0.7`)
 
 ### Windows
 
@@ -119,6 +131,16 @@ List of options provided by CMake:
 | UR_USE_MSAN | Enable MemorySanitizer (clang only) | ON/OFF | OFF |
 | UR_ENABLE_TRACING | Enable XPTI-based tracing layer | ON/OFF | OFF |
 | UR_CONFORMANCE_TARGET_TRIPLES | SYCL triples to build CTS device binaries for | Comma-separated list | spir64 |
+| UR_BUILD_ADAPTER_L0     | Build the Level-Zero adapter            | ON/OFF     | OFF     |
+| UR_BUILD_ADAPTER_OPENCL | Build the OpenCL adapter                | ON/OFF     | OFF     |
+| UR_BUILD_ADAPTER_CUDA   | Build the CUDA adapter                  | ON/OFF     | OFF     |
+| UR_BUILD_ADAPTER_HIP    | Build the HIP adapter                   | ON/OFF     | OFF     |
+| UR_BUILD_ADAPTER_NATIVE_CPU | Build the Native-CPU adapter        | ON/OFF     | OFF     |
+| UR_BUILD_ADAPTER_ALL    | Build all currently supported adapters  | ON/OFF     | OFF     |
+| UR_HIP_PLATFORM         | Build HIP adapter for AMD or NVIDIA platform           | AMD/NVIDIA | AMD     |
+| UR_ENABLE_COMGR         | Enable comgr lib usage           | AMD/NVIDIA | AMD     |
+| UR_DPCXX | Path of the DPC++ compiler executable to build CTS device binaries | File path | `""` |
+| UR_SYCL_LIBRARY_DIR | Path of the SYCL runtime library directory to build CTS device binaries | Directory path | `""` |
 
 ### Additional make targets
 
@@ -136,6 +158,10 @@ It will generate the source code **and** run automated code formatting:
 ```bash
 $ make generate
 ```
+
+This target has additional dependencies which are described in the *Build
+Environment* section of the
+[Contribution Guide](https://oneapi-src.github.io/unified-runtime/core/CONTRIB.html).
 
 ## Contributions
 
@@ -159,3 +185,26 @@ Code is generated using included [Python scripts](/scripts/README.md).
 
 Documentation is generated from source code using Sphinx -
 see [scripts dir](/scripts/README.md) for details.
+
+## Release Process
+
+Unified Runtime releases are aligned with oneAPI releases. Once all changes
+planned for a release have been accepted, the release process is defined as:
+
+1. Create a new release branch based on the [main][main-branch] branch taking
+   the form `v<major>.<minor>.x` where `x` is a placeholder for the patch
+   version. This branch will always contain the latest patch version for a given
+   release.
+2. Create a PR to increment the CMake project version on the [main][main-branch]
+   and merge before accepting any other changes.
+3. Create a new tag based on the latest commit on the release branch taking the
+   form `v<major>.<minor>.<patch>`.
+4. Create a [new GitHub release][new-github-release] using the tag created in
+   the previous step.
+   * Prior to version 1.0, check the *Set as a pre-release* tick box.
+5. Update downstream projects to utilize the release tag. If any issues arise
+   from integration, apply any necessary hot fixes to `v<major>.<minor>.x`
+   branch and go back to step 3.
+
+[main-branch]: https://github.com/oneapi-src/unified-runtime/tree/main
+[new-github-release]: https://github.com/oneapi-src/unified-runtime/releases/new

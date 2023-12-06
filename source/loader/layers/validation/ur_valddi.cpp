@@ -94,7 +94,7 @@ __urdlllocal ur_result_t UR_APICALL urAdapterRetain(
     ur_result_t result = pfnAdapterRetain(hAdapter);
 
     if (context.enableLeakChecking && result == UR_RESULT_SUCCESS) {
-        refCountContext.decrementRefCount(hAdapter, true);
+        refCountContext.incrementRefCount(hAdapter, true);
     }
 
     return result;
@@ -213,6 +213,10 @@ __urdlllocal ur_result_t UR_APICALL urPlatformGet(
     if (context.enableParameterValidation) {
         if (NULL == phAdapters) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NumEntries == 0 && phPlatforms != NULL) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
         }
     }
 
@@ -398,8 +402,8 @@ __urdlllocal ur_result_t UR_APICALL urDeviceGet(
     ur_device_type_t DeviceType,    ///< [in] the type of the devices.
     uint32_t
         NumEntries, ///< [in] the number of devices to be added to phDevices.
-    ///< If phDevices in not NULL then NumEntries should be greater than zero,
-    ///< otherwise ::UR_RESULT_ERROR_INVALID_VALUE,
+    ///< If phDevices is not NULL, then NumEntries should be greater than zero.
+    ///< Otherwise ::UR_RESULT_ERROR_INVALID_SIZE
     ///< will be returned.
     ur_device_handle_t *
         phDevices, ///< [out][optional][range(0, NumEntries)] array of handle of devices.
@@ -419,8 +423,16 @@ __urdlllocal ur_result_t UR_APICALL urDeviceGet(
             return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
         }
 
+        if (NumEntries > 0 && phDevices == NULL) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
         if (UR_DEVICE_TYPE_VPU < DeviceType) {
             return UR_RESULT_ERROR_INVALID_ENUMERATION;
+        }
+
+        if (NumEntries == 0 && phDevices != NULL) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
         }
     }
 
@@ -560,6 +572,10 @@ __urdlllocal ur_result_t UR_APICALL urDevicePartition(
         }
 
         if (NULL == pProperties) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL == pProperties->pProperties) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
         }
     }
@@ -734,6 +750,10 @@ __urdlllocal ur_result_t UR_APICALL urContextCreate(
 
         if (NULL == phContext) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL != pProperties && UR_CONTEXT_FLAGS_MASK & pProperties->flags) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
         }
     }
 
@@ -1612,6 +1632,10 @@ __urdlllocal ur_result_t UR_APICALL urUSMHostAlloc(
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
         }
 
+        if (NULL != pUSMDesc && UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
+        }
+
         if (pUSMDesc && pUSMDesc->align != 0 &&
             ((pUSMDesc->align & (pUSMDesc->align - 1)) != 0)) {
             return UR_RESULT_ERROR_INVALID_VALUE;
@@ -1657,6 +1681,10 @@ __urdlllocal ur_result_t UR_APICALL urUSMDeviceAlloc(
 
         if (NULL == ppMem) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL != pUSMDesc && UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
         }
 
         if (pUSMDesc && pUSMDesc->align != 0 &&
@@ -1705,6 +1733,10 @@ __urdlllocal ur_result_t UR_APICALL urUSMSharedAlloc(
 
         if (NULL == ppMem) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL != pUSMDesc && UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
         }
 
         if (pUSMDesc && pUSMDesc->align != 0 &&
@@ -2231,6 +2263,11 @@ __urdlllocal ur_result_t UR_APICALL urPhysicalMemCreate(
 
         if (NULL == phPhysicalMem) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL != pProperties &&
+            UR_PHYSICAL_MEM_FLAGS_MASK & pProperties->flags) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
         }
     }
 
@@ -3204,6 +3241,11 @@ __urdlllocal ur_result_t UR_APICALL urKernelSetArgMemObj(
         if (NULL == hKernel) {
             return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
         }
+
+        if (NULL != pProperties &&
+            UR_MEM_FLAGS_MASK & pProperties->memoryAccess) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
+        }
     }
 
     ur_result_t result =
@@ -3393,6 +3435,22 @@ __urdlllocal ur_result_t UR_APICALL urQueueCreate(
 
         if (NULL == phQueue) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL != pProperties && UR_QUEUE_FLAGS_MASK & pProperties->flags) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
+        }
+
+        if (pProperties != NULL &&
+            pProperties->flags & UR_QUEUE_FLAG_PRIORITY_HIGH &&
+            pProperties->flags & UR_QUEUE_FLAG_PRIORITY_LOW) {
+            return UR_RESULT_ERROR_INVALID_QUEUE_PROPERTIES;
+        }
+
+        if (pProperties != NULL &&
+            pProperties->flags & UR_QUEUE_FLAG_SUBMISSION_BATCHED &&
+            pProperties->flags & UR_QUEUE_FLAG_SUBMISSION_IMMEDIATE) {
+            return UR_RESULT_ERROR_INVALID_QUEUE_PROPERTIES;
         }
     }
 
@@ -3830,8 +3888,12 @@ __urdlllocal ur_result_t UR_APICALL urEventSetCallback(
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
         }
 
-        if (UR_EXECUTION_INFO_EXECUTION_INFO_QUEUED < execStatus) {
+        if (UR_EXECUTION_INFO_QUEUED < execStatus) {
             return UR_RESULT_ERROR_INVALID_ENUMERATION;
+        }
+
+        if (execStatus == UR_EXECUTION_INFO_QUEUED) {
+            return UR_RESULT_ERROR_UNSUPPORTED_ENUMERATION;
         }
     }
 
@@ -3902,6 +3964,14 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueKernelLaunch(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnKernelLaunch(
@@ -3943,6 +4013,14 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueEventsWait(
 
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
         }
     }
 
@@ -3986,6 +4064,14 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueEventsWaitWithBarrier(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnEventsWaitWithBarrier(hQueue, numEventsInWaitList,
@@ -3998,7 +4084,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueEventsWaitWithBarrier(
 /// @brief Intercept function for urEnqueueMemBufferRead
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferRead(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
     bool blockingRead, ///< [in] indicates blocking (true), non-blocking (false)
     size_t offset,     ///< [in] offset in bytes in the buffer object
     size_t size,       ///< [in] size in bytes of data being read
@@ -4039,6 +4126,19 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferRead(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (auto boundsError = bounds(hBuffer, offset, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -4052,7 +4152,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferRead(
 /// @brief Intercept function for urEnqueueMemBufferWrite
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWrite(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
     bool
         blockingWrite, ///< [in] indicates blocking (true), non-blocking (false)
     size_t offset,     ///< [in] offset in bytes in the buffer object
@@ -4095,6 +4196,19 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWrite(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (auto boundsError = bounds(hBuffer, offset, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -4108,7 +4222,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWrite(
 /// @brief Intercept function for urEnqueueMemBufferReadRect
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferReadRect(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(bufferOrigin, region)] handle of the buffer object
     bool blockingRead, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t bufferOrigin, ///< [in] 3D offset in the buffer
     ur_rect_offset_t hostOrigin,   ///< [in] 3D offset in the host region
@@ -4201,6 +4316,19 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferReadRect(
                 0) {
             return UR_RESULT_ERROR_INVALID_SIZE;
         }
+
+        if (auto boundsError = bounds(hBuffer, bufferOrigin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnMemBufferReadRect(
@@ -4215,7 +4343,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferReadRect(
 /// @brief Intercept function for urEnqueueMemBufferWriteRect
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWriteRect(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(bufferOrigin, region)] handle of the buffer object
     bool
         blockingWrite, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t bufferOrigin, ///< [in] 3D offset in the buffer
@@ -4312,6 +4441,19 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWriteRect(
                 0) {
             return UR_RESULT_ERROR_INVALID_SIZE;
         }
+
+        if (auto boundsError = bounds(hBuffer, bufferOrigin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnMemBufferWriteRect(
@@ -4325,9 +4467,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferWriteRect(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueMemBufferCopy
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopy(
-    ur_queue_handle_t hQueue,   ///< [in] handle of the queue object
-    ur_mem_handle_t hBufferSrc, ///< [in] handle of the src buffer object
-    ur_mem_handle_t hBufferDst, ///< [in] handle of the dest buffer object
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    ur_mem_handle_t
+        hBufferSrc, ///< [in][bounds(srcOffset, size)] handle of the src buffer object
+    ur_mem_handle_t
+        hBufferDst, ///< [in][bounds(dstOffset, size)] handle of the dest buffer object
     size_t srcOffset, ///< [in] offset into hBufferSrc to begin copying from
     size_t dstOffset, ///< [in] offset info hBufferDst to begin copying into
     size_t size,      ///< [in] size in bytes of data being copied
@@ -4367,6 +4511,24 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopy(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (auto boundsError = bounds(hBufferSrc, srcOffset, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (auto boundsError = bounds(hBufferDst, dstOffset, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -4379,9 +4541,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopy(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueMemBufferCopyRect
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopyRect(
-    ur_queue_handle_t hQueue,   ///< [in] handle of the queue object
-    ur_mem_handle_t hBufferSrc, ///< [in] handle of the source buffer object
-    ur_mem_handle_t hBufferDst, ///< [in] handle of the dest buffer object
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    ur_mem_handle_t
+        hBufferSrc, ///< [in][bounds(srcOrigin, region)] handle of the source buffer object
+    ur_mem_handle_t
+        hBufferDst, ///< [in][bounds(dstOrigin, region)] handle of the dest buffer object
     ur_rect_offset_t srcOrigin, ///< [in] 3D offset in the source buffer
     ur_rect_offset_t dstOrigin, ///< [in] 3D offset in the destination buffer
     ur_rect_region_t
@@ -4466,6 +4630,24 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopyRect(
                 0) {
             return UR_RESULT_ERROR_INVALID_SIZE;
         }
+
+        if (auto boundsError = bounds(hBufferSrc, srcOrigin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (auto boundsError = bounds(hBufferDst, dstOrigin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnMemBufferCopyRect(
@@ -4480,10 +4662,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferCopyRect(
 /// @brief Intercept function for urEnqueueMemBufferFill
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferFill(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
-    const void *pPattern,     ///< [in] pointer to the fill pattern
-    size_t patternSize,       ///< [in] size in bytes of the pattern
-    size_t offset,            ///< [in] offset into the buffer
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
+    const void *pPattern, ///< [in] pointer to the fill pattern
+    size_t patternSize,   ///< [in] size in bytes of the pattern
+    size_t offset,        ///< [in] offset into the buffer
     size_t size, ///< [in] fill size in bytes, must be a multiple of patternSize
     uint32_t numEventsInWaitList, ///< [in] size of the event wait list
     const ur_event_handle_t *
@@ -4521,6 +4704,39 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferFill(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (patternSize == 0 || size == 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if (patternSize > size) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if ((patternSize & (patternSize - 1)) != 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if (size % patternSize != 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if (offset % patternSize != 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if (auto boundsError = bounds(hBuffer, offset, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -4534,7 +4750,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferFill(
 /// @brief Intercept function for urEnqueueMemImageRead
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageRead(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hImage,   ///< [in] handle of the image object
+    ur_mem_handle_t
+        hImage, ///< [in][bounds(origin, region)] handle of the image object
     bool blockingRead, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t
         origin, ///< [in] defines the (x,y,z) offset in pixels in the 1D, 2D, or 3D image
@@ -4580,6 +4797,23 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageRead(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (region.width == 0 || region.height == 0 || region.depth == 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if (auto boundsError = boundsImage(hImage, origin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnMemImageRead(
@@ -4593,7 +4827,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageRead(
 /// @brief Intercept function for urEnqueueMemImageWrite
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageWrite(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hImage,   ///< [in] handle of the image object
+    ur_mem_handle_t
+        hImage, ///< [in][bounds(origin, region)] handle of the image object
     bool
         blockingWrite, ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t
@@ -4640,6 +4875,23 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageWrite(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (region.width == 0 || region.height == 0 || region.depth == 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if (auto boundsError = boundsImage(hImage, origin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnMemImageWrite(
@@ -4652,9 +4904,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageWrite(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueMemImageCopy
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageCopy(
-    ur_queue_handle_t hQueue,  ///< [in] handle of the queue object
-    ur_mem_handle_t hImageSrc, ///< [in] handle of the src image object
-    ur_mem_handle_t hImageDst, ///< [in] handle of the dest image object
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    ur_mem_handle_t
+        hImageSrc, ///< [in][bounds(srcOrigin, region)] handle of the src image object
+    ur_mem_handle_t
+        hImageDst, ///< [in][bounds(dstOrigin, region)] handle of the dest image object
     ur_rect_offset_t
         srcOrigin, ///< [in] defines the (x,y,z) offset in pixels in the source 1D, 2D, or 3D
                    ///< image
@@ -4700,6 +4954,28 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageCopy(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (region.width == 0 || region.height == 0 || region.depth == 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+
+        if (auto boundsError = boundsImage(hImageSrc, srcOrigin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (auto boundsError = boundsImage(hImageDst, dstOrigin, region);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -4713,7 +4989,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemImageCopy(
 /// @brief Intercept function for urEnqueueMemBufferMap
 __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferMap(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,  ///< [in] handle of the buffer object
+    ur_mem_handle_t
+        hBuffer, ///< [in][bounds(offset, size)] handle of the buffer object
     bool blockingMap, ///< [in] indicates blocking (true), non-blocking (false)
     ur_map_flags_t mapFlags, ///< [in] flags for read, write, readwrite mapping
     size_t offset, ///< [in] offset in bytes of the buffer region being mapped
@@ -4759,6 +5036,19 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemBufferMap(
 
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+        }
+
+        if (auto boundsError = bounds(hBuffer, offset, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
         }
     }
 
@@ -4812,6 +5102,14 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemUnmap(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -4825,7 +5123,7 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueMemUnmap(
 /// @brief Intercept function for urEnqueueUSMFill
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
-    void *ptr,                ///< [in] pointer to USM memory object
+    void *pMem, ///< [in][bounds(0, size)] pointer to USM memory object
     size_t
         patternSize, ///< [in] the size in bytes of the pattern. Must be a power of 2 and less
                      ///< than or equal to width.
@@ -4854,7 +5152,7 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill(
             return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
         }
 
-        if (NULL == ptr) {
+        if (NULL == pMem) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
         }
 
@@ -4885,10 +5183,23 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (auto boundsError = bounds(hQueue, pMem, 0, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
-        pfnUSMFill(hQueue, ptr, patternSize, pPattern, size,
+        pfnUSMFill(hQueue, pMem, patternSize, pPattern, size,
                    numEventsInWaitList, phEventWaitList, phEvent);
 
     return result;
@@ -4899,9 +5210,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill(
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue object
     bool blocking,            ///< [in] blocking or non-blocking copy
-    void *pDst,       ///< [in] pointer to the destination USM memory object
-    const void *pSrc, ///< [in] pointer to the source USM memory object
-    size_t size,      ///< [in] size in bytes to be copied
+    void *
+        pDst, ///< [in][bounds(0, size)] pointer to the destination USM memory object
+    const void *
+        pSrc, ///< [in][bounds(0, size)] pointer to the source USM memory object
+    size_t size,                  ///< [in] size in bytes to be copied
     uint32_t numEventsInWaitList, ///< [in] size of the event wait list
     const ur_event_handle_t *
         phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
@@ -4942,6 +5255,24 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (auto boundsError = bounds(hQueue, pDst, 0, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (auto boundsError = bounds(hQueue, pSrc, 0, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -4954,9 +5285,10 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueUSMPrefetch
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMPrefetch(
-    ur_queue_handle_t hQueue,       ///< [in] handle of the queue object
-    const void *pMem,               ///< [in] pointer to the USM memory object
-    size_t size,                    ///< [in] size in bytes to be fetched
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    const void
+        *pMem,   ///< [in][bounds(0, size)] pointer to the USM memory object
+    size_t size, ///< [in] size in bytes to be fetched
     ur_usm_migration_flags_t flags, ///< [in] USM prefetch flags
     uint32_t numEventsInWaitList,   ///< [in] size of the event wait list
     const ur_event_handle_t *
@@ -4998,6 +5330,19 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMPrefetch(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (auto boundsError = bounds(hQueue, pMem, 0, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -5010,9 +5355,10 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMPrefetch(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urEnqueueUSMAdvise
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMAdvise(
-    ur_queue_handle_t hQueue,     ///< [in] handle of the queue object
-    const void *pMem,             ///< [in] pointer to the USM memory object
-    size_t size,                  ///< [in] size in bytes to be advised
+    ur_queue_handle_t hQueue, ///< [in] handle of the queue object
+    const void
+        *pMem,   ///< [in][bounds(0, size)] pointer to the USM memory object
+    size_t size, ///< [in] size in bytes to be advised
     ur_usm_advice_flags_t advice, ///< [in] USM memory advice
     ur_event_handle_t *
         phEvent ///< [out][optional] return an event object that identifies this particular
@@ -5040,6 +5386,11 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMAdvise(
         if (size == 0) {
             return UR_RESULT_ERROR_INVALID_SIZE;
         }
+
+        if (auto boundsError = bounds(hQueue, pMem, 0, size);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
     }
 
     ur_result_t result = pfnUSMAdvise(hQueue, pMem, size, advice, phEvent);
@@ -5051,7 +5402,8 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMAdvise(
 /// @brief Intercept function for urEnqueueUSMFill2D
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill2D(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue to submit to.
-    void *pMem,               ///< [in] pointer to memory to be filled.
+    void *
+        pMem, ///< [in][bounds(0, pitch * height)] pointer to memory to be filled.
     size_t
         pitch, ///< [in] the total width of the destination memory including padding.
     size_t
@@ -5131,6 +5483,19 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill2D(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (auto boundsError = bounds(hQueue, pMem, 0, pitch * height);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -5145,10 +5510,13 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMFill2D(
 __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy2D(
     ur_queue_handle_t hQueue, ///< [in] handle of the queue to submit to.
     bool blocking, ///< [in] indicates if this operation should block the host.
-    void *pDst,    ///< [in] pointer to memory where data will be copied.
+    void *
+        pDst, ///< [in][bounds(0, dstPitch * height)] pointer to memory where data will
+              ///< be copied.
     size_t
         dstPitch, ///< [in] the total width of the source memory including padding.
-    const void *pSrc, ///< [in] pointer to memory to be copied.
+    const void *
+        pSrc, ///< [in][bounds(0, srcPitch * height)] pointer to memory to be copied.
     size_t
         srcPitch, ///< [in] the total width of the source memory including padding.
     size_t width,  ///< [in] the width in bytes of each row to be copied.
@@ -5208,6 +5576,24 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueUSMMemcpy2D(
 
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+        }
+
+        if (auto boundsError = bounds(hQueue, pDst, 0, dstPitch * height);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (auto boundsError = bounds(hQueue, pSrc, 0, srcPitch * height);
+            boundsError != UR_RESULT_SUCCESS) {
+            return boundsError;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
         }
     }
 
@@ -5272,6 +5658,14 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueDeviceGlobalVariableWrite(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnDeviceGlobalVariableWrite(
@@ -5334,6 +5728,14 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueDeviceGlobalVariableRead(
 
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
         }
     }
 
@@ -5401,6 +5803,14 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueReadHostPipe(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result =
@@ -5434,7 +5844,7 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueWriteHostPipe(
     ///< events that must be complete before the host pipe write.
     ///< If nullptr, the numEventsInWaitList must be 0, indicating that no wait event.
     ur_event_handle_t *
-        phEvent ///< [out] returns an event object that identifies this write command
+        phEvent ///< [out][optional] returns an event object that identifies this write command
     ///< and can be used to query or queue a wait for this command to complete.
 ) {
     auto pfnWriteHostPipe = context.urDdiTable.Enqueue.pfnWriteHostPipe;
@@ -5460,16 +5870,20 @@ __urdlllocal ur_result_t UR_APICALL urEnqueueWriteHostPipe(
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
         }
 
-        if (NULL == phEvent) {
-            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
-        }
-
         if (phEventWaitList == NULL && numEventsInWaitList > 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
 
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
         }
     }
 
@@ -5518,6 +5932,10 @@ __urdlllocal ur_result_t UR_APICALL urUSMPitchedAllocExp(
 
         if (NULL == pResultPitch) {
             return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL != pUSMDesc && UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
         }
 
         if (pUSMDesc && pUSMDesc->align != 0 &&
@@ -5888,6 +6306,14 @@ __urdlllocal ur_result_t UR_APICALL urBindlessImagesImageCopyExp(
         if (pImageDesc && UR_MEM_TYPE_IMAGE1D_BUFFER < pImageDesc->type) {
             return UR_RESULT_ERROR_INVALID_IMAGE_FORMAT_DESCRIPTOR;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnImageCopyExp(
@@ -6254,6 +6680,14 @@ __urdlllocal ur_result_t UR_APICALL urBindlessImagesWaitExternalSemaphoreExp(
         if (NULL == hSemaphore) {
             return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnWaitExternalSemaphoreExp(
@@ -6293,6 +6727,14 @@ __urdlllocal ur_result_t UR_APICALL urBindlessImagesSignalExternalSemaphoreExp(
 
         if (NULL == hSemaphore) {
             return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
         }
     }
 
@@ -7010,6 +7452,116 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferAppendMemBufferFillExp(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urCommandBufferAppendUSMPrefetchExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendUSMPrefetchExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,  ///< [in] handle of the command-buffer object.
+    const void *pMemory, ///< [in] pointer to USM allocated memory to prefetch.
+    size_t size,         ///< [in] size in bytes to be fetched.
+    ur_usm_migration_flags_t flags, ///< [in] USM prefetch flags
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+) {
+    auto pfnAppendUSMPrefetchExp =
+        context.urDdiTable.CommandBufferExp.pfnAppendUSMPrefetchExp;
+
+    if (nullptr == pfnAppendUSMPrefetchExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    if (context.enableParameterValidation) {
+        if (NULL == hCommandBuffer) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == pMemory) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (UR_USM_MIGRATION_FLAGS_MASK & flags) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
+        }
+
+        if (pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0) {
+            return UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP;
+        }
+
+        if (pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0) {
+            return UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP;
+        }
+
+        if (size == 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+    }
+
+    ur_result_t result = pfnAppendUSMPrefetchExp(
+        hCommandBuffer, pMemory, size, flags, numSyncPointsInWaitList,
+        pSyncPointWaitList, pSyncPoint);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urCommandBufferAppendUSMAdviseExp
+__urdlllocal ur_result_t UR_APICALL urCommandBufferAppendUSMAdviseExp(
+    ur_exp_command_buffer_handle_t
+        hCommandBuffer,           ///< [in] handle of the command-buffer object.
+    const void *pMemory,          ///< [in] pointer to the USM memory object.
+    size_t size,                  ///< [in] size in bytes to be advised.
+    ur_usm_advice_flags_t advice, ///< [in] USM memory advice
+    uint32_t
+        numSyncPointsInWaitList, ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *
+        pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *
+        pSyncPoint ///< [out][optional] sync point associated with this command.
+) {
+    auto pfnAppendUSMAdviseExp =
+        context.urDdiTable.CommandBufferExp.pfnAppendUSMAdviseExp;
+
+    if (nullptr == pfnAppendUSMAdviseExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    if (context.enableParameterValidation) {
+        if (NULL == hCommandBuffer) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == pMemory) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (UR_USM_ADVICE_FLAGS_MASK & advice) {
+            return UR_RESULT_ERROR_INVALID_ENUMERATION;
+        }
+
+        if (pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0) {
+            return UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP;
+        }
+
+        if (pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0) {
+            return UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP;
+        }
+
+        if (size == 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+    }
+
+    ur_result_t result = pfnAppendUSMAdviseExp(hCommandBuffer, pMemory, size,
+                                               advice, numSyncPointsInWaitList,
+                                               pSyncPointWaitList, pSyncPoint);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Intercept function for urCommandBufferEnqueueExp
 __urdlllocal ur_result_t UR_APICALL urCommandBufferEnqueueExp(
     ur_exp_command_buffer_handle_t
@@ -7048,10 +7600,239 @@ __urdlllocal ur_result_t UR_APICALL urCommandBufferEnqueueExp(
         if (phEventWaitList != NULL && numEventsInWaitList == 0) {
             return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
         }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
     }
 
     ur_result_t result = pfnEnqueueExp(
         hCommandBuffer, hQueue, numEventsInWaitList, phEventWaitList, phEvent);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urEnqueueCooperativeKernelLaunchExp
+__urdlllocal ur_result_t UR_APICALL urEnqueueCooperativeKernelLaunchExp(
+    ur_queue_handle_t hQueue,   ///< [in] handle of the queue object
+    ur_kernel_handle_t hKernel, ///< [in] handle of the kernel object
+    uint32_t
+        workDim, ///< [in] number of dimensions, from 1 to 3, to specify the global and
+                 ///< work-group work-items
+    const size_t *
+        pGlobalWorkOffset, ///< [in] pointer to an array of workDim unsigned values that specify the
+    ///< offset used to calculate the global ID of a work-item
+    const size_t *
+        pGlobalWorkSize, ///< [in] pointer to an array of workDim unsigned values that specify the
+    ///< number of global work-items in workDim that will execute the kernel
+    ///< function
+    const size_t *
+        pLocalWorkSize, ///< [in][optional] pointer to an array of workDim unsigned values that
+    ///< specify the number of local work-items forming a work-group that will
+    ///< execute the kernel function.
+    ///< If nullptr, the runtime implementation will choose the work-group
+    ///< size.
+    uint32_t numEventsInWaitList, ///< [in] size of the event wait list
+    const ur_event_handle_t *
+        phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
+    ///< events that must be complete before the kernel execution.
+    ///< If nullptr, the numEventsInWaitList must be 0, indicating that no wait
+    ///< event.
+    ur_event_handle_t *
+        phEvent ///< [out][optional] return an event object that identifies this particular
+                ///< kernel execution instance.
+) {
+    auto pfnCooperativeKernelLaunchExp =
+        context.urDdiTable.EnqueueExp.pfnCooperativeKernelLaunchExp;
+
+    if (nullptr == pfnCooperativeKernelLaunchExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    if (context.enableParameterValidation) {
+        if (NULL == hQueue) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == hKernel) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == pGlobalWorkOffset) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL == pGlobalWorkSize) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (phEventWaitList == NULL && numEventsInWaitList > 0) {
+            return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList == 0) {
+            return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+        }
+
+        if (phEventWaitList != NULL && numEventsInWaitList > 0) {
+            for (uint32_t i = 0; i < numEventsInWaitList; ++i) {
+                if (phEventWaitList[i] == NULL) {
+                    return UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST;
+                }
+            }
+        }
+    }
+
+    ur_result_t result = pfnCooperativeKernelLaunchExp(
+        hQueue, hKernel, workDim, pGlobalWorkOffset, pGlobalWorkSize,
+        pLocalWorkSize, numEventsInWaitList, phEventWaitList, phEvent);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urKernelSuggestMaxCooperativeGroupCountExp
+__urdlllocal ur_result_t UR_APICALL urKernelSuggestMaxCooperativeGroupCountExp(
+    ur_kernel_handle_t hKernel, ///< [in] handle of the kernel object
+    uint32_t *pGroupCountRet    ///< [out] pointer to maximum number of groups
+) {
+    auto pfnSuggestMaxCooperativeGroupCountExp =
+        context.urDdiTable.KernelExp.pfnSuggestMaxCooperativeGroupCountExp;
+
+    if (nullptr == pfnSuggestMaxCooperativeGroupCountExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    if (context.enableParameterValidation) {
+        if (NULL == hKernel) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == pGroupCountRet) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+    }
+
+    ur_result_t result =
+        pfnSuggestMaxCooperativeGroupCountExp(hKernel, pGroupCountRet);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urProgramBuildExp
+__urdlllocal ur_result_t UR_APICALL urProgramBuildExp(
+    ur_program_handle_t hProgram, ///< [in] Handle of the program to build.
+    uint32_t numDevices,          ///< [in] number of devices
+    ur_device_handle_t *
+        phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    const char *
+        pOptions ///< [in][optional] pointer to build options null-terminated string.
+) {
+    auto pfnBuildExp = context.urDdiTable.ProgramExp.pfnBuildExp;
+
+    if (nullptr == pfnBuildExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    if (context.enableParameterValidation) {
+        if (NULL == hProgram) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == phDevices) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+    }
+
+    ur_result_t result = pfnBuildExp(hProgram, numDevices, phDevices, pOptions);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urProgramCompileExp
+__urdlllocal ur_result_t UR_APICALL urProgramCompileExp(
+    ur_program_handle_t
+        hProgram,        ///< [in][out] handle of the program to compile.
+    uint32_t numDevices, ///< [in] number of devices
+    ur_device_handle_t *
+        phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    const char *
+        pOptions ///< [in][optional] pointer to build options null-terminated string.
+) {
+    auto pfnCompileExp = context.urDdiTable.ProgramExp.pfnCompileExp;
+
+    if (nullptr == pfnCompileExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    if (context.enableParameterValidation) {
+        if (NULL == hProgram) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == phDevices) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+    }
+
+    ur_result_t result =
+        pfnCompileExp(hProgram, numDevices, phDevices, pOptions);
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Intercept function for urProgramLinkExp
+__urdlllocal ur_result_t UR_APICALL urProgramLinkExp(
+    ur_context_handle_t hContext, ///< [in] handle of the context instance.
+    uint32_t numDevices,          ///< [in] number of devices
+    ur_device_handle_t *
+        phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    uint32_t count, ///< [in] number of program handles in `phPrograms`.
+    const ur_program_handle_t *
+        phPrograms, ///< [in][range(0, count)] pointer to array of program handles.
+    const char *
+        pOptions, ///< [in][optional] pointer to linker options null-terminated string.
+    ur_program_handle_t
+        *phProgram ///< [out] pointer to handle of program object created.
+) {
+    auto pfnLinkExp = context.urDdiTable.ProgramExp.pfnLinkExp;
+
+    if (nullptr == pfnLinkExp) {
+        return UR_RESULT_ERROR_UNINITIALIZED;
+    }
+
+    if (context.enableParameterValidation) {
+        if (NULL == hContext) {
+            return UR_RESULT_ERROR_INVALID_NULL_HANDLE;
+        }
+
+        if (NULL == phDevices) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL == phPrograms) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (NULL == phProgram) {
+            return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+        }
+
+        if (count == 0) {
+            return UR_RESULT_ERROR_INVALID_SIZE;
+        }
+    }
+
+    ur_result_t result = pfnLinkExp(hContext, numDevices, phDevices, count,
+                                    phPrograms, pOptions, phProgram);
 
     return result;
 }
@@ -7466,6 +8247,14 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetCommandBufferExpProcAddrTable(
     pDdiTable->pfnAppendMemBufferFillExp =
         ur_validation_layer::urCommandBufferAppendMemBufferFillExp;
 
+    dditable.pfnAppendUSMPrefetchExp = pDdiTable->pfnAppendUSMPrefetchExp;
+    pDdiTable->pfnAppendUSMPrefetchExp =
+        ur_validation_layer::urCommandBufferAppendUSMPrefetchExp;
+
+    dditable.pfnAppendUSMAdviseExp = pDdiTable->pfnAppendUSMAdviseExp;
+    pDdiTable->pfnAppendUSMAdviseExp =
+        ur_validation_layer::urCommandBufferAppendUSMAdviseExp;
+
     dditable.pfnEnqueueExp = pDdiTable->pfnEnqueueExp;
     pDdiTable->pfnEnqueueExp = ur_validation_layer::urCommandBufferEnqueueExp;
 
@@ -7642,6 +8431,42 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetEnqueueProcAddrTable(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Exported function for filling application's EnqueueExp table
+///        with current process' addresses
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_VERSION
+UR_DLLEXPORT ur_result_t UR_APICALL urGetEnqueueExpProcAddrTable(
+    ur_api_version_t version, ///< [in] API version requested
+    ur_enqueue_exp_dditable_t
+        *pDdiTable ///< [in,out] pointer to table of DDI function pointers
+) {
+    auto &dditable = ur_validation_layer::context.urDdiTable.EnqueueExp;
+
+    if (nullptr == pDdiTable) {
+        return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+    }
+
+    if (UR_MAJOR_VERSION(ur_validation_layer::context.version) !=
+            UR_MAJOR_VERSION(version) ||
+        UR_MINOR_VERSION(ur_validation_layer::context.version) >
+            UR_MINOR_VERSION(version)) {
+        return UR_RESULT_ERROR_UNSUPPORTED_VERSION;
+    }
+
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    dditable.pfnCooperativeKernelLaunchExp =
+        pDdiTable->pfnCooperativeKernelLaunchExp;
+    pDdiTable->pfnCooperativeKernelLaunchExp =
+        ur_validation_layer::urEnqueueCooperativeKernelLaunchExp;
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Exported function for filling application's Event table
 ///        with current process' addresses
 ///
@@ -7775,6 +8600,42 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetKernelProcAddrTable(
         pDdiTable->pfnSetSpecializationConstants;
     pDdiTable->pfnSetSpecializationConstants =
         ur_validation_layer::urKernelSetSpecializationConstants;
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Exported function for filling application's KernelExp table
+///        with current process' addresses
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_VERSION
+UR_DLLEXPORT ur_result_t UR_APICALL urGetKernelExpProcAddrTable(
+    ur_api_version_t version, ///< [in] API version requested
+    ur_kernel_exp_dditable_t
+        *pDdiTable ///< [in,out] pointer to table of DDI function pointers
+) {
+    auto &dditable = ur_validation_layer::context.urDdiTable.KernelExp;
+
+    if (nullptr == pDdiTable) {
+        return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+    }
+
+    if (UR_MAJOR_VERSION(ur_validation_layer::context.version) !=
+            UR_MAJOR_VERSION(version) ||
+        UR_MINOR_VERSION(ur_validation_layer::context.version) >
+            UR_MINOR_VERSION(version)) {
+        return UR_RESULT_ERROR_UNSUPPORTED_VERSION;
+    }
+
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    dditable.pfnSuggestMaxCooperativeGroupCountExp =
+        pDdiTable->pfnSuggestMaxCooperativeGroupCountExp;
+    pDdiTable->pfnSuggestMaxCooperativeGroupCountExp =
+        ur_validation_layer::urKernelSuggestMaxCooperativeGroupCountExp;
 
     return result;
 }
@@ -8008,6 +8869,46 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetProgramProcAddrTable(
     dditable.pfnCreateWithNativeHandle = pDdiTable->pfnCreateWithNativeHandle;
     pDdiTable->pfnCreateWithNativeHandle =
         ur_validation_layer::urProgramCreateWithNativeHandle;
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Exported function for filling application's ProgramExp table
+///        with current process' addresses
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_VERSION
+UR_DLLEXPORT ur_result_t UR_APICALL urGetProgramExpProcAddrTable(
+    ur_api_version_t version, ///< [in] API version requested
+    ur_program_exp_dditable_t
+        *pDdiTable ///< [in,out] pointer to table of DDI function pointers
+) {
+    auto &dditable = ur_validation_layer::context.urDdiTable.ProgramExp;
+
+    if (nullptr == pDdiTable) {
+        return UR_RESULT_ERROR_INVALID_NULL_POINTER;
+    }
+
+    if (UR_MAJOR_VERSION(ur_validation_layer::context.version) !=
+            UR_MAJOR_VERSION(version) ||
+        UR_MINOR_VERSION(ur_validation_layer::context.version) >
+            UR_MINOR_VERSION(version)) {
+        return UR_RESULT_ERROR_UNSUPPORTED_VERSION;
+    }
+
+    ur_result_t result = UR_RESULT_SUCCESS;
+
+    dditable.pfnBuildExp = pDdiTable->pfnBuildExp;
+    pDdiTable->pfnBuildExp = ur_validation_layer::urProgramBuildExp;
+
+    dditable.pfnCompileExp = pDdiTable->pfnCompileExp;
+    pDdiTable->pfnCompileExp = ur_validation_layer::urProgramCompileExp;
+
+    dditable.pfnLinkExp = pDdiTable->pfnLinkExp;
+    pDdiTable->pfnLinkExp = ur_validation_layer::urProgramLinkExp;
 
     return result;
 }
@@ -8375,7 +9276,8 @@ UR_DLLEXPORT ur_result_t UR_APICALL urGetDeviceProcAddrTable(
 }
 
 ur_result_t context_t::init(ur_dditable_t *dditable,
-                            const std::set<std::string> &enabledLayerNames) {
+                            const std::set<std::string> &enabledLayerNames,
+                            codeloc_data) {
     ur_result_t result = UR_RESULT_SUCCESS;
 
     if (enabledLayerNames.count(nameFullValidation)) {
@@ -8420,6 +9322,11 @@ ur_result_t context_t::init(ur_dditable_t *dditable,
     }
 
     if (UR_RESULT_SUCCESS == result) {
+        result = ur_validation_layer::urGetEnqueueExpProcAddrTable(
+            UR_API_VERSION_CURRENT, &dditable->EnqueueExp);
+    }
+
+    if (UR_RESULT_SUCCESS == result) {
         result = ur_validation_layer::urGetEventProcAddrTable(
             UR_API_VERSION_CURRENT, &dditable->Event);
     }
@@ -8427,6 +9334,11 @@ ur_result_t context_t::init(ur_dditable_t *dditable,
     if (UR_RESULT_SUCCESS == result) {
         result = ur_validation_layer::urGetKernelProcAddrTable(
             UR_API_VERSION_CURRENT, &dditable->Kernel);
+    }
+
+    if (UR_RESULT_SUCCESS == result) {
+        result = ur_validation_layer::urGetKernelExpProcAddrTable(
+            UR_API_VERSION_CURRENT, &dditable->KernelExp);
     }
 
     if (UR_RESULT_SUCCESS == result) {
@@ -8447,6 +9359,11 @@ ur_result_t context_t::init(ur_dditable_t *dditable,
     if (UR_RESULT_SUCCESS == result) {
         result = ur_validation_layer::urGetProgramProcAddrTable(
             UR_API_VERSION_CURRENT, &dditable->Program);
+    }
+
+    if (UR_RESULT_SUCCESS == result) {
+        result = ur_validation_layer::urGetProgramExpProcAddrTable(
+            UR_API_VERSION_CURRENT, &dditable->ProgramExp);
     }
 
     if (UR_RESULT_SUCCESS == result) {

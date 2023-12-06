@@ -7,7 +7,7 @@
  * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  *
  * @file ur_api.h
- * @version v0.8-r0
+ * @version v0.9-r0
  *
  */
 #ifndef UR_API_H_INCLUDED
@@ -196,18 +196,26 @@ typedef enum ur_function_t {
     UR_FUNCTION_ADAPTER_RETAIN = 179,                                          ///< Enumerator for ::urAdapterRetain
     UR_FUNCTION_ADAPTER_GET_LAST_ERROR = 180,                                  ///< Enumerator for ::urAdapterGetLastError
     UR_FUNCTION_ADAPTER_GET_INFO = 181,                                        ///< Enumerator for ::urAdapterGetInfo
-    UR_FUNCTION_LOADER_INIT = 182,                                             ///< Enumerator for ::urLoaderInit
-    UR_FUNCTION_LOADER_TEAR_DOWN = 183,                                        ///< Enumerator for ::urLoaderTearDown
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_MEMCPY_EXP = 184,                    ///< Enumerator for ::urCommandBufferAppendUSMMemcpyExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_FILL_EXP = 185,                      ///< Enumerator for ::urCommandBufferAppendUSMFillExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_COPY_EXP = 186,               ///< Enumerator for ::urCommandBufferAppendMemBufferCopyExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_WRITE_EXP = 187,              ///< Enumerator for ::urCommandBufferAppendMemBufferWriteExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_READ_EXP = 188,               ///< Enumerator for ::urCommandBufferAppendMemBufferReadExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_COPY_RECT_EXP = 189,          ///< Enumerator for ::urCommandBufferAppendMemBufferCopyRectExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_WRITE_RECT_EXP = 190,         ///< Enumerator for ::urCommandBufferAppendMemBufferWriteRectExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_READ_RECT_EXP = 191,          ///< Enumerator for ::urCommandBufferAppendMemBufferReadRectExp
-    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_FILL_EXP = 192,               ///< Enumerator for ::urCommandBufferAppendMemBufferFillExp
-    UR_FUNCTION_DEVICE_GET_SELECTED = 193,                                     ///< Enumerator for ::urDeviceGetSelected
+    UR_FUNCTION_PROGRAM_BUILD_EXP = 197,                                       ///< Enumerator for ::urProgramBuildExp
+    UR_FUNCTION_PROGRAM_COMPILE_EXP = 198,                                     ///< Enumerator for ::urProgramCompileExp
+    UR_FUNCTION_PROGRAM_LINK_EXP = 199,                                        ///< Enumerator for ::urProgramLinkExp
+    UR_FUNCTION_LOADER_CONFIG_SET_CODE_LOCATION_CALLBACK = 200,                ///< Enumerator for ::urLoaderConfigSetCodeLocationCallback
+    UR_FUNCTION_LOADER_INIT = 201,                                             ///< Enumerator for ::urLoaderInit
+    UR_FUNCTION_LOADER_TEAR_DOWN = 202,                                        ///< Enumerator for ::urLoaderTearDown
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_MEMCPY_EXP = 203,                    ///< Enumerator for ::urCommandBufferAppendUSMMemcpyExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_FILL_EXP = 204,                      ///< Enumerator for ::urCommandBufferAppendUSMFillExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_COPY_EXP = 205,               ///< Enumerator for ::urCommandBufferAppendMemBufferCopyExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_WRITE_EXP = 206,              ///< Enumerator for ::urCommandBufferAppendMemBufferWriteExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_READ_EXP = 207,               ///< Enumerator for ::urCommandBufferAppendMemBufferReadExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_COPY_RECT_EXP = 208,          ///< Enumerator for ::urCommandBufferAppendMemBufferCopyRectExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_WRITE_RECT_EXP = 209,         ///< Enumerator for ::urCommandBufferAppendMemBufferWriteRectExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_READ_RECT_EXP = 210,          ///< Enumerator for ::urCommandBufferAppendMemBufferReadRectExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_MEM_BUFFER_FILL_EXP = 211,               ///< Enumerator for ::urCommandBufferAppendMemBufferFillExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_PREFETCH_EXP = 212,                  ///< Enumerator for ::urCommandBufferAppendUSMPrefetchExp
+    UR_FUNCTION_COMMAND_BUFFER_APPEND_USM_ADVISE_EXP = 213,                    ///< Enumerator for ::urCommandBufferAppendUSMAdviseExp
+    UR_FUNCTION_ENQUEUE_COOPERATIVE_KERNEL_LAUNCH_EXP = 214,                   ///< Enumerator for ::urEnqueueCooperativeKernelLaunchExp
+    UR_FUNCTION_KERNEL_SUGGEST_MAX_COOPERATIVE_GROUP_COUNT_EXP = 215,          ///< Enumerator for ::urKernelSuggestMaxCooperativeGroupCountExp
+    UR_FUNCTION_DEVICE_GET_SELECTED = 300,                                     ///< Enumerator for ::urDeviceGetSelected
     /// @cond
     UR_FUNCTION_FORCE_UINT32 = 0x7fffffff
     /// @endcond
@@ -217,46 +225,48 @@ typedef enum ur_function_t {
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Defines structure types
 typedef enum ur_structure_type_t {
-    UR_STRUCTURE_TYPE_CONTEXT_PROPERTIES = 0,               ///< ::ur_context_properties_t
-    UR_STRUCTURE_TYPE_IMAGE_DESC = 1,                       ///< ::ur_image_desc_t
-    UR_STRUCTURE_TYPE_BUFFER_PROPERTIES = 2,                ///< ::ur_buffer_properties_t
-    UR_STRUCTURE_TYPE_BUFFER_REGION = 3,                    ///< ::ur_buffer_region_t
-    UR_STRUCTURE_TYPE_BUFFER_CHANNEL_PROPERTIES = 4,        ///< ::ur_buffer_channel_properties_t
-    UR_STRUCTURE_TYPE_BUFFER_ALLOC_LOCATION_PROPERTIES = 5, ///< ::ur_buffer_alloc_location_properties_t
-    UR_STRUCTURE_TYPE_PROGRAM_PROPERTIES = 6,               ///< ::ur_program_properties_t
-    UR_STRUCTURE_TYPE_USM_DESC = 7,                         ///< ::ur_usm_desc_t
-    UR_STRUCTURE_TYPE_USM_HOST_DESC = 8,                    ///< ::ur_usm_host_desc_t
-    UR_STRUCTURE_TYPE_USM_DEVICE_DESC = 9,                  ///< ::ur_usm_device_desc_t
-    UR_STRUCTURE_TYPE_USM_POOL_DESC = 10,                   ///< ::ur_usm_pool_desc_t
-    UR_STRUCTURE_TYPE_USM_POOL_LIMITS_DESC = 11,            ///< ::ur_usm_pool_limits_desc_t
-    UR_STRUCTURE_TYPE_DEVICE_BINARY = 12,                   ///< ::ur_device_binary_t
-    UR_STRUCTURE_TYPE_SAMPLER_DESC = 13,                    ///< ::ur_sampler_desc_t
-    UR_STRUCTURE_TYPE_QUEUE_PROPERTIES = 14,                ///< ::ur_queue_properties_t
-    UR_STRUCTURE_TYPE_QUEUE_INDEX_PROPERTIES = 15,          ///< ::ur_queue_index_properties_t
-    UR_STRUCTURE_TYPE_CONTEXT_NATIVE_PROPERTIES = 16,       ///< ::ur_context_native_properties_t
-    UR_STRUCTURE_TYPE_KERNEL_NATIVE_PROPERTIES = 17,        ///< ::ur_kernel_native_properties_t
-    UR_STRUCTURE_TYPE_QUEUE_NATIVE_PROPERTIES = 18,         ///< ::ur_queue_native_properties_t
-    UR_STRUCTURE_TYPE_MEM_NATIVE_PROPERTIES = 19,           ///< ::ur_mem_native_properties_t
-    UR_STRUCTURE_TYPE_EVENT_NATIVE_PROPERTIES = 20,         ///< ::ur_event_native_properties_t
-    UR_STRUCTURE_TYPE_PLATFORM_NATIVE_PROPERTIES = 21,      ///< ::ur_platform_native_properties_t
-    UR_STRUCTURE_TYPE_DEVICE_NATIVE_PROPERTIES = 22,        ///< ::ur_device_native_properties_t
-    UR_STRUCTURE_TYPE_PROGRAM_NATIVE_PROPERTIES = 23,       ///< ::ur_program_native_properties_t
-    UR_STRUCTURE_TYPE_SAMPLER_NATIVE_PROPERTIES = 24,       ///< ::ur_sampler_native_properties_t
-    UR_STRUCTURE_TYPE_QUEUE_NATIVE_DESC = 25,               ///< ::ur_queue_native_desc_t
-    UR_STRUCTURE_TYPE_DEVICE_PARTITION_PROPERTIES = 26,     ///< ::ur_device_partition_properties_t
-    UR_STRUCTURE_TYPE_KERNEL_ARG_MEM_OBJ_PROPERTIES = 27,   ///< ::ur_kernel_arg_mem_obj_properties_t
-    UR_STRUCTURE_TYPE_PHYSICAL_MEM_PROPERTIES = 28,         ///< ::ur_physical_mem_properties_t
-    UR_STRUCTURE_TYPE_KERNEL_ARG_POINTER_PROPERTIES = 29,   ///< ::ur_kernel_arg_pointer_properties_t
-    UR_STRUCTURE_TYPE_KERNEL_ARG_SAMPLER_PROPERTIES = 30,   ///< ::ur_kernel_arg_sampler_properties_t
-    UR_STRUCTURE_TYPE_KERNEL_EXEC_INFO_PROPERTIES = 31,     ///< ::ur_kernel_exec_info_properties_t
-    UR_STRUCTURE_TYPE_KERNEL_ARG_VALUE_PROPERTIES = 32,     ///< ::ur_kernel_arg_value_properties_t
-    UR_STRUCTURE_TYPE_KERNEL_ARG_LOCAL_PROPERTIES = 33,     ///< ::ur_kernel_arg_local_properties_t
-    UR_STRUCTURE_TYPE_EXP_COMMAND_BUFFER_DESC = 0x1000,     ///< ::ur_exp_command_buffer_desc_t
-    UR_STRUCTURE_TYPE_EXP_SAMPLER_MIP_PROPERTIES = 0x2000,  ///< ::ur_exp_sampler_mip_properties_t
-    UR_STRUCTURE_TYPE_EXP_INTEROP_MEM_DESC = 0x2001,        ///< ::ur_exp_interop_mem_desc_t
-    UR_STRUCTURE_TYPE_EXP_INTEROP_SEMAPHORE_DESC = 0x2002,  ///< ::ur_exp_interop_semaphore_desc_t
-    UR_STRUCTURE_TYPE_EXP_FILE_DESCRIPTOR = 0x2003,         ///< ::ur_exp_file_descriptor_t
-    UR_STRUCTURE_TYPE_EXP_WIN32_HANDLE = 0x2004,            ///< ::ur_exp_win32_handle_t
+    UR_STRUCTURE_TYPE_CONTEXT_PROPERTIES = 0,                ///< ::ur_context_properties_t
+    UR_STRUCTURE_TYPE_IMAGE_DESC = 1,                        ///< ::ur_image_desc_t
+    UR_STRUCTURE_TYPE_BUFFER_PROPERTIES = 2,                 ///< ::ur_buffer_properties_t
+    UR_STRUCTURE_TYPE_BUFFER_REGION = 3,                     ///< ::ur_buffer_region_t
+    UR_STRUCTURE_TYPE_BUFFER_CHANNEL_PROPERTIES = 4,         ///< ::ur_buffer_channel_properties_t
+    UR_STRUCTURE_TYPE_BUFFER_ALLOC_LOCATION_PROPERTIES = 5,  ///< ::ur_buffer_alloc_location_properties_t
+    UR_STRUCTURE_TYPE_PROGRAM_PROPERTIES = 6,                ///< ::ur_program_properties_t
+    UR_STRUCTURE_TYPE_USM_DESC = 7,                          ///< ::ur_usm_desc_t
+    UR_STRUCTURE_TYPE_USM_HOST_DESC = 8,                     ///< ::ur_usm_host_desc_t
+    UR_STRUCTURE_TYPE_USM_DEVICE_DESC = 9,                   ///< ::ur_usm_device_desc_t
+    UR_STRUCTURE_TYPE_USM_POOL_DESC = 10,                    ///< ::ur_usm_pool_desc_t
+    UR_STRUCTURE_TYPE_USM_POOL_LIMITS_DESC = 11,             ///< ::ur_usm_pool_limits_desc_t
+    UR_STRUCTURE_TYPE_DEVICE_BINARY = 12,                    ///< ::ur_device_binary_t
+    UR_STRUCTURE_TYPE_SAMPLER_DESC = 13,                     ///< ::ur_sampler_desc_t
+    UR_STRUCTURE_TYPE_QUEUE_PROPERTIES = 14,                 ///< ::ur_queue_properties_t
+    UR_STRUCTURE_TYPE_QUEUE_INDEX_PROPERTIES = 15,           ///< ::ur_queue_index_properties_t
+    UR_STRUCTURE_TYPE_CONTEXT_NATIVE_PROPERTIES = 16,        ///< ::ur_context_native_properties_t
+    UR_STRUCTURE_TYPE_KERNEL_NATIVE_PROPERTIES = 17,         ///< ::ur_kernel_native_properties_t
+    UR_STRUCTURE_TYPE_QUEUE_NATIVE_PROPERTIES = 18,          ///< ::ur_queue_native_properties_t
+    UR_STRUCTURE_TYPE_MEM_NATIVE_PROPERTIES = 19,            ///< ::ur_mem_native_properties_t
+    UR_STRUCTURE_TYPE_EVENT_NATIVE_PROPERTIES = 20,          ///< ::ur_event_native_properties_t
+    UR_STRUCTURE_TYPE_PLATFORM_NATIVE_PROPERTIES = 21,       ///< ::ur_platform_native_properties_t
+    UR_STRUCTURE_TYPE_DEVICE_NATIVE_PROPERTIES = 22,         ///< ::ur_device_native_properties_t
+    UR_STRUCTURE_TYPE_PROGRAM_NATIVE_PROPERTIES = 23,        ///< ::ur_program_native_properties_t
+    UR_STRUCTURE_TYPE_SAMPLER_NATIVE_PROPERTIES = 24,        ///< ::ur_sampler_native_properties_t
+    UR_STRUCTURE_TYPE_QUEUE_NATIVE_DESC = 25,                ///< ::ur_queue_native_desc_t
+    UR_STRUCTURE_TYPE_DEVICE_PARTITION_PROPERTIES = 26,      ///< ::ur_device_partition_properties_t
+    UR_STRUCTURE_TYPE_KERNEL_ARG_MEM_OBJ_PROPERTIES = 27,    ///< ::ur_kernel_arg_mem_obj_properties_t
+    UR_STRUCTURE_TYPE_PHYSICAL_MEM_PROPERTIES = 28,          ///< ::ur_physical_mem_properties_t
+    UR_STRUCTURE_TYPE_KERNEL_ARG_POINTER_PROPERTIES = 29,    ///< ::ur_kernel_arg_pointer_properties_t
+    UR_STRUCTURE_TYPE_KERNEL_ARG_SAMPLER_PROPERTIES = 30,    ///< ::ur_kernel_arg_sampler_properties_t
+    UR_STRUCTURE_TYPE_KERNEL_EXEC_INFO_PROPERTIES = 31,      ///< ::ur_kernel_exec_info_properties_t
+    UR_STRUCTURE_TYPE_KERNEL_ARG_VALUE_PROPERTIES = 32,      ///< ::ur_kernel_arg_value_properties_t
+    UR_STRUCTURE_TYPE_KERNEL_ARG_LOCAL_PROPERTIES = 33,      ///< ::ur_kernel_arg_local_properties_t
+    UR_STRUCTURE_TYPE_EXP_COMMAND_BUFFER_DESC = 0x1000,      ///< ::ur_exp_command_buffer_desc_t
+    UR_STRUCTURE_TYPE_EXP_SAMPLER_MIP_PROPERTIES = 0x2000,   ///< ::ur_exp_sampler_mip_properties_t
+    UR_STRUCTURE_TYPE_EXP_INTEROP_MEM_DESC = 0x2001,         ///< ::ur_exp_interop_mem_desc_t
+    UR_STRUCTURE_TYPE_EXP_INTEROP_SEMAPHORE_DESC = 0x2002,   ///< ::ur_exp_interop_semaphore_desc_t
+    UR_STRUCTURE_TYPE_EXP_FILE_DESCRIPTOR = 0x2003,          ///< ::ur_exp_file_descriptor_t
+    UR_STRUCTURE_TYPE_EXP_WIN32_HANDLE = 0x2004,             ///< ::ur_exp_win32_handle_t
+    UR_STRUCTURE_TYPE_EXP_LAYERED_IMAGE_PROPERTIES = 0x2005, ///< ::ur_exp_layered_image_properties_t
+    UR_STRUCTURE_TYPE_EXP_SAMPLER_ADDR_MODES = 0x2006,       ///< ::ur_exp_sampler_addr_modes_t
     /// @cond
     UR_STRUCTURE_TYPE_FORCE_UINT32 = 0x7fffffff
     /// @endcond
@@ -671,6 +681,49 @@ urLoaderConfigEnableLayer(
 );
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Code location data
+typedef struct ur_code_location_t {
+    const char *functionName; ///< [in][out] Function name.
+    const char *sourceFile;   ///< [in][out] Source code file.
+    uint32_t lineNumber;      ///< [in][out] Source code line number.
+    uint32_t columnNumber;    ///< [in][out] Source code column number.
+
+} ur_code_location_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Code location callback with user data.
+typedef ur_code_location_t (*ur_code_location_callback_t)(
+    void *pUserData ///< [in][out] pointer to data to be passed to callback
+);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Set a function callback for use by the loader to retrieve code
+///        location information.
+///
+/// @details
+///     - The code location callback is optional and provides additional
+///       information to the tracing layer about the entry point of the current
+///       execution flow.
+///     - This functionality can be used to match traced unified runtime
+///       function calls with higher-level user calls.
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hLoaderConfig`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pfnCodeloc`
+UR_APIEXPORT ur_result_t UR_APICALL
+urLoaderConfigSetCodeLocationCallback(
+    ur_loader_config_handle_t hLoaderConfig, ///< [in] Handle to config object the layer will be enabled for.
+    ur_code_location_callback_t pfnCodeloc,  ///< [in] Function pointer to code location callback.
+    void *pUserData                          ///< [in][out][optional] pointer to data to be passed to callback.
+);
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize the 'oneAPI' loader
 ///
 /// @details
@@ -943,6 +996,7 @@ typedef enum ur_adapter_backend_t {
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == phAdapters`
 ///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `NumEntries == 0 && phPlatforms != NULL`
 UR_APIEXPORT ur_result_t UR_APICALL
 urPlatformGet(
     ur_adapter_handle_t *phAdapters,   ///< [in][range(0, NumAdapters)] array of adapters to query for platforms.
@@ -1032,7 +1086,8 @@ typedef enum ur_api_version_t {
     UR_API_VERSION_0_6 = UR_MAKE_VERSION(0, 6),     ///< version 0.6
     UR_API_VERSION_0_7 = UR_MAKE_VERSION(0, 7),     ///< version 0.7
     UR_API_VERSION_0_8 = UR_MAKE_VERSION(0, 8),     ///< version 0.8
-    UR_API_VERSION_CURRENT = UR_MAKE_VERSION(0, 8), ///< latest known version
+    UR_API_VERSION_0_9 = UR_MAKE_VERSION(0, 9),     ///< version 0.9
+    UR_API_VERSION_CURRENT = UR_MAKE_VERSION(0, 9), ///< latest known version
     /// @cond
     UR_API_VERSION_FORCE_UINT32 = 0x7fffffff
     /// @endcond
@@ -1302,14 +1357,18 @@ typedef enum ur_device_type_t {
 ///         + `NULL == hPlatform`
 ///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
 ///         + `::UR_DEVICE_TYPE_VPU < DeviceType`
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `NumEntries == 0 && phDevices != NULL`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NumEntries > 0 && phDevices == NULL`
 ///     - ::UR_RESULT_ERROR_INVALID_VALUE
 UR_APIEXPORT ur_result_t UR_APICALL
 urDeviceGet(
     ur_platform_handle_t hPlatform, ///< [in] handle of the platform instance
     ur_device_type_t DeviceType,    ///< [in] the type of the devices.
     uint32_t NumEntries,            ///< [in] the number of devices to be added to phDevices.
-                                    ///< If phDevices in not NULL then NumEntries should be greater than zero,
-                                    ///< otherwise ::UR_RESULT_ERROR_INVALID_VALUE,
+                                    ///< If phDevices is not NULL, then NumEntries should be greater than zero.
+                                    ///< Otherwise ::UR_RESULT_ERROR_INVALID_SIZE
                                     ///< will be returned.
     ur_device_handle_t *phDevices,  ///< [out][optional][range(0, NumEntries)] array of handle of devices.
                                     ///< If NumEntries is less than the number of devices available, then
@@ -1755,6 +1814,7 @@ typedef struct ur_device_partition_properties_t {
 ///         + `NULL == hDevice`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == pProperties`
+///         + `NULL == pProperties->pProperties`
 ///     - ::UR_RESULT_ERROR_DEVICE_PARTITION_FAILED
 ///     - ::UR_RESULT_ERROR_INVALID_DEVICE_PARTITION_COUNT
 UR_APIEXPORT ur_result_t UR_APICALL
@@ -2067,6 +2127,8 @@ typedef struct ur_context_properties_t {
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == phDevices`
 ///         + `NULL == phContext`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pProperties && ::UR_CONTEXT_FLAGS_MASK & pProperties->flags`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_DEVICE_MEMORY
 UR_APIEXPORT ur_result_t UR_APICALL
@@ -3311,6 +3373,8 @@ typedef struct ur_usm_pool_limits_desc_t {
 ///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hContext`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pUSMDesc && ::UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == ppMem`
 ///     - ::UR_RESULT_ERROR_INVALID_CONTEXT
@@ -3355,6 +3419,8 @@ urUSMHostAlloc(
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hContext`
 ///         + `NULL == hDevice`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pUSMDesc && ::UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == ppMem`
 ///     - ::UR_RESULT_ERROR_INVALID_CONTEXT
@@ -3401,6 +3467,8 @@ urUSMDeviceAlloc(
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hContext`
 ///         + `NULL == hDevice`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pUSMDesc && ::UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == ppMem`
 ///     - ::UR_RESULT_ERROR_INVALID_CONTEXT
@@ -3843,6 +3911,8 @@ typedef struct ur_physical_mem_properties_t {
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hContext`
 ///         + `NULL == hDevice`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pProperties && ::UR_PHYSICAL_MEM_FLAGS_MASK & pProperties->flags`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == phPhysicalMem`
 ///     - ::UR_RESULT_ERROR_INVALID_SIZE
@@ -4920,6 +4990,8 @@ typedef struct ur_kernel_arg_mem_obj_properties_t {
 ///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hKernel`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pProperties && ::UR_MEM_FLAGS_MASK & pProperties->memoryAccess`
 ///     - ::UR_RESULT_ERROR_INVALID_KERNEL_ARGUMENT_INDEX
 UR_APIEXPORT ur_result_t UR_APICALL
 urKernelSetArgMemObj(
@@ -5173,12 +5245,15 @@ typedef struct ur_queue_index_properties_t {
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hContext`
 ///         + `NULL == hDevice`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pProperties && ::UR_QUEUE_FLAGS_MASK & pProperties->flags`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == phQueue`
 ///     - ::UR_RESULT_ERROR_INVALID_CONTEXT
 ///     - ::UR_RESULT_ERROR_INVALID_DEVICE
-///     - ::UR_RESULT_ERROR_INVALID_VALUE
 ///     - ::UR_RESULT_ERROR_INVALID_QUEUE_PROPERTIES
+///         + `pProperties != NULL && pProperties->flags & UR_QUEUE_FLAG_PRIORITY_HIGH && pProperties->flags & UR_QUEUE_FLAG_PRIORITY_LOW`
+///         + `pProperties != NULL && pProperties->flags & UR_QUEUE_FLAG_SUBMISSION_BATCHED && pProperties->flags & UR_QUEUE_FLAG_SUBMISSION_IMMEDIATE`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
@@ -5538,6 +5613,8 @@ urEventGetInfo(
 ///         + `NULL == hEvent`
 ///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
 ///         + `::UR_PROFILING_INFO_COMMAND_COMPLETE < propName`
+///     - ::UR_RESULT_ERROR_PROFILING_INFO_NOT_AVAILABLE
+///         + If `hEvent`s associated queue was not created with `UR_QUEUE_FLAG_PROFILING_ENABLE`.
 ///     - ::UR_RESULT_ERROR_INVALID_VALUE
 ///         + `pPropValue && propSize == 0`
 ///     - ::UR_RESULT_ERROR_INVALID_EVENT
@@ -5699,11 +5776,11 @@ urEventCreateWithNativeHandle(
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Event states for all events.
 typedef enum ur_execution_info_t {
-    UR_EXECUTION_INFO_EXECUTION_INFO_COMPLETE = 0,  ///< Indicates that the event has completed.
-    UR_EXECUTION_INFO_EXECUTION_INFO_RUNNING = 1,   ///< Indicates that the device has started processing this event.
-    UR_EXECUTION_INFO_EXECUTION_INFO_SUBMITTED = 2, ///< Indicates that the event has been submitted by the host to the device.
-    UR_EXECUTION_INFO_EXECUTION_INFO_QUEUED = 3,    ///< Indicates that the event has been queued, this is the initial state of
-                                                    ///< events.
+    UR_EXECUTION_INFO_COMPLETE = 0,  ///< Indicates that the event has completed.
+    UR_EXECUTION_INFO_RUNNING = 1,   ///< Indicates that the device has started processing this event.
+    UR_EXECUTION_INFO_SUBMITTED = 2, ///< Indicates that the event has been submitted by the host to the device.
+    UR_EXECUTION_INFO_QUEUED = 3,    ///< Indicates that the event has been queued, this is the initial state of
+                                     ///< events.
     /// @cond
     UR_EXECUTION_INFO_FORCE_UINT32 = 0x7fffffff
     /// @endcond
@@ -5726,6 +5803,8 @@ typedef void (*ur_event_callback_t)(
 ///     - The registered callback function will be called when the execution
 ///       status of command associated with event changes to an execution status
 ///       equal to or past the status specified by command_exec_status.
+///     - `execStatus` must not be `UR_EXECUTION_INFO_QUEUED` as this is the
+///       initial state of all events.
 ///     - The application may call this function from simultaneous threads for
 ///       the same context.
 ///     - The implementation of this function should be thread-safe.
@@ -5738,9 +5817,11 @@ typedef void (*ur_event_callback_t)(
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hEvent`
 ///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
-///         + `::UR_EXECUTION_INFO_EXECUTION_INFO_QUEUED < execStatus`
+///         + `::UR_EXECUTION_INFO_QUEUED < execStatus`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == pfnNotify`
+///     - ::UR_RESULT_ERROR_UNSUPPORTED_ENUMERATION
+///         + `execStatus == UR_EXECUTION_INFO_QUEUED`
 UR_APIEXPORT ur_result_t UR_APICALL
 urEventSetCallback(
     ur_event_handle_t hEvent,       ///< [in] handle of the event object
@@ -5932,7 +6013,7 @@ urEnqueueEventsWaitWithBarrier(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferRead(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,                  ///< [in] handle of the buffer object
+    ur_mem_handle_t hBuffer,                  ///< [in][bounds(offset, size)] handle of the buffer object
     bool blockingRead,                        ///< [in] indicates blocking (true), non-blocking (false)
     size_t offset,                            ///< [in] offset in bytes in the buffer object
     size_t size,                              ///< [in] size in bytes of data being read
@@ -5981,7 +6062,7 @@ urEnqueueMemBufferRead(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferWrite(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,                  ///< [in] handle of the buffer object
+    ur_mem_handle_t hBuffer,                  ///< [in][bounds(offset, size)] handle of the buffer object
     bool blockingWrite,                       ///< [in] indicates blocking (true), non-blocking (false)
     size_t offset,                            ///< [in] offset in bytes in the buffer object
     size_t size,                              ///< [in] size in bytes of data being written
@@ -6040,7 +6121,7 @@ urEnqueueMemBufferWrite(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferReadRect(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,                  ///< [in] handle of the buffer object
+    ur_mem_handle_t hBuffer,                  ///< [in][bounds(bufferOrigin, region)] handle of the buffer object
     bool blockingRead,                        ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t bufferOrigin,            ///< [in] 3D offset in the buffer
     ur_rect_offset_t hostOrigin,              ///< [in] 3D offset in the host region
@@ -6106,7 +6187,7 @@ urEnqueueMemBufferReadRect(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferWriteRect(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,                  ///< [in] handle of the buffer object
+    ur_mem_handle_t hBuffer,                  ///< [in][bounds(bufferOrigin, region)] handle of the buffer object
     bool blockingWrite,                       ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t bufferOrigin,            ///< [in] 3D offset in the buffer
     ur_rect_offset_t hostOrigin,              ///< [in] 3D offset in the host region
@@ -6159,8 +6240,8 @@ urEnqueueMemBufferWriteRect(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferCopy(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBufferSrc,               ///< [in] handle of the src buffer object
-    ur_mem_handle_t hBufferDst,               ///< [in] handle of the dest buffer object
+    ur_mem_handle_t hBufferSrc,               ///< [in][bounds(srcOffset, size)] handle of the src buffer object
+    ur_mem_handle_t hBufferDst,               ///< [in][bounds(dstOffset, size)] handle of the dest buffer object
     size_t srcOffset,                         ///< [in] offset into hBufferSrc to begin copying from
     size_t dstOffset,                         ///< [in] offset info hBufferDst to begin copying into
     size_t size,                              ///< [in] size in bytes of data being copied
@@ -6212,8 +6293,8 @@ urEnqueueMemBufferCopy(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferCopyRect(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBufferSrc,               ///< [in] handle of the source buffer object
-    ur_mem_handle_t hBufferDst,               ///< [in] handle of the dest buffer object
+    ur_mem_handle_t hBufferSrc,               ///< [in][bounds(srcOrigin, region)] handle of the source buffer object
+    ur_mem_handle_t hBufferDst,               ///< [in][bounds(dstOrigin, region)] handle of the dest buffer object
     ur_rect_offset_t srcOrigin,               ///< [in] 3D offset in the source buffer
     ur_rect_offset_t dstOrigin,               ///< [in] 3D offset in the destination buffer
     ur_rect_region_t region,                  ///< [in] source 3D rectangular region descriptor: width, height, depth
@@ -6256,13 +6337,18 @@ urEnqueueMemBufferCopyRect(
 ///         + If event objects in phEventWaitList are not valid events.
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
 ///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `patternSize == 0 || size == 0`
+///         + `patternSize > size`
+///         + `(patternSize & (patternSize - 1)) != 0`
+///         + `size % patternSize != 0`
+///         + `offset % patternSize != 0`
 ///         + If `offset + size` results in an out-of-bounds access.
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferFill(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,                  ///< [in] handle of the buffer object
+    ur_mem_handle_t hBuffer,                  ///< [in][bounds(offset, size)] handle of the buffer object
     const void *pPattern,                     ///< [in] pointer to the fill pattern
     size_t patternSize,                       ///< [in] size in bytes of the pattern
     size_t offset,                            ///< [in] offset into the buffer
@@ -6305,12 +6391,14 @@ urEnqueueMemBufferFill(
 ///         + `phEventWaitList != NULL && numEventsInWaitList == 0`
 ///         + If event objects in phEventWaitList are not valid events.
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `region.width == 0 || region.height == 0 || region.depth == 0`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemImageRead(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hImage,                   ///< [in] handle of the image object
+    ur_mem_handle_t hImage,                   ///< [in][bounds(origin, region)] handle of the image object
     bool blockingRead,                        ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t origin,                  ///< [in] defines the (x,y,z) offset in pixels in the 1D, 2D, or 3D image
     ur_rect_region_t region,                  ///< [in] defines the (width, height, depth) in pixels of the 1D, 2D, or 3D
@@ -6356,12 +6444,14 @@ urEnqueueMemImageRead(
 ///         + `phEventWaitList != NULL && numEventsInWaitList == 0`
 ///         + If event objects in phEventWaitList are not valid events.
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `region.width == 0 || region.height == 0 || region.depth == 0`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemImageWrite(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hImage,                   ///< [in] handle of the image object
+    ur_mem_handle_t hImage,                   ///< [in][bounds(origin, region)] handle of the image object
     bool blockingWrite,                       ///< [in] indicates blocking (true), non-blocking (false)
     ur_rect_offset_t origin,                  ///< [in] defines the (x,y,z) offset in pixels in the 1D, 2D, or 3D image
     ur_rect_region_t region,                  ///< [in] defines the (width, height, depth) in pixels of the 1D, 2D, or 3D
@@ -6401,13 +6491,15 @@ urEnqueueMemImageWrite(
 ///         + `phEventWaitList != NULL && numEventsInWaitList == 0`
 ///         + If event objects in phEventWaitList are not valid events.
 ///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `region.width == 0 || region.height == 0 || region.depth == 0`
 ///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
 ///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemImageCopy(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hImageSrc,                ///< [in] handle of the src image object
-    ur_mem_handle_t hImageDst,                ///< [in] handle of the dest image object
+    ur_mem_handle_t hImageSrc,                ///< [in][bounds(srcOrigin, region)] handle of the src image object
+    ur_mem_handle_t hImageDst,                ///< [in][bounds(dstOrigin, region)] handle of the dest image object
     ur_rect_offset_t srcOrigin,               ///< [in] defines the (x,y,z) offset in pixels in the source 1D, 2D, or 3D
                                               ///< image
     ur_rect_offset_t dstOrigin,               ///< [in] defines the (x,y,z) offset in pixels in the destination 1D, 2D,
@@ -6492,7 +6584,7 @@ typedef enum ur_usm_migration_flag_t {
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueMemBufferMap(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    ur_mem_handle_t hBuffer,                  ///< [in] handle of the buffer object
+    ur_mem_handle_t hBuffer,                  ///< [in][bounds(offset, size)] handle of the buffer object
     bool blockingMap,                         ///< [in] indicates blocking (true), non-blocking (false)
     ur_map_flags_t mapFlags,                  ///< [in] flags for read, write, readwrite mapping
     size_t offset,                            ///< [in] offset in bytes of the buffer region being mapped
@@ -6560,7 +6652,7 @@ urEnqueueMemUnmap(
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hQueue`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
-///         + `NULL == ptr`
+///         + `NULL == pMem`
 ///         + `NULL == pPattern`
 ///     - ::UR_RESULT_ERROR_INVALID_QUEUE
 ///     - ::UR_RESULT_ERROR_INVALID_EVENT
@@ -6580,7 +6672,7 @@ urEnqueueMemUnmap(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueUSMFill(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    void *ptr,                                ///< [in] pointer to USM memory object
+    void *pMem,                               ///< [in][bounds(0, size)] pointer to USM memory object
     size_t patternSize,                       ///< [in] the size in bytes of the pattern. Must be a power of 2 and less
                                               ///< than or equal to width.
     const void *pPattern,                     ///< [in] pointer with the bytes of the pattern to set.
@@ -6623,8 +6715,8 @@ UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueUSMMemcpy(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
     bool blocking,                            ///< [in] blocking or non-blocking copy
-    void *pDst,                               ///< [in] pointer to the destination USM memory object
-    const void *pSrc,                         ///< [in] pointer to the source USM memory object
+    void *pDst,                               ///< [in][bounds(0, size)] pointer to the destination USM memory object
+    const void *pSrc,                         ///< [in][bounds(0, size)] pointer to the source USM memory object
     size_t size,                              ///< [in] size in bytes to be copied
     uint32_t numEventsInWaitList,             ///< [in] size of the event wait list
     const ur_event_handle_t *phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
@@ -6637,6 +6729,11 @@ urEnqueueUSMMemcpy(
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Enqueue a command to prefetch USM memory
+///
+/// @details
+///     - Prefetching may not be supported for all devices or allocation types.
+///       If memory prefetching is not supported, the prefetch hint will be
+///       ignored.
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
@@ -6664,7 +6761,7 @@ urEnqueueUSMMemcpy(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueUSMPrefetch(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
-    const void *pMem,                         ///< [in] pointer to the USM memory object
+    const void *pMem,                         ///< [in][bounds(0, size)] pointer to the USM memory object
     size_t size,                              ///< [in] size in bytes to be fetched
     ur_usm_migration_flags_t flags,           ///< [in] USM prefetch flags
     uint32_t numEventsInWaitList,             ///< [in] size of the event wait list
@@ -6678,6 +6775,11 @@ urEnqueueUSMPrefetch(
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Enqueue a command to set USM memory advice
+///
+/// @details
+///     - Not all memory advice hints may be supported for all devices or
+///       allocation types. If a memory advice hint is not supported, it will be
+///       ignored.
 ///
 /// @returns
 ///     - ::UR_RESULT_SUCCESS
@@ -6701,7 +6803,7 @@ urEnqueueUSMPrefetch(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueUSMAdvise(
     ur_queue_handle_t hQueue,     ///< [in] handle of the queue object
-    const void *pMem,             ///< [in] pointer to the USM memory object
+    const void *pMem,             ///< [in][bounds(0, size)] pointer to the USM memory object
     size_t size,                  ///< [in] size in bytes to be advised
     ur_usm_advice_flags_t advice, ///< [in] USM memory advice
     ur_event_handle_t *phEvent    ///< [out][optional] return an event object that identifies this particular
@@ -6742,7 +6844,7 @@ urEnqueueUSMAdvise(
 UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueUSMFill2D(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue to submit to.
-    void *pMem,                               ///< [in] pointer to memory to be filled.
+    void *pMem,                               ///< [in][bounds(0, pitch * height)] pointer to memory to be filled.
     size_t pitch,                             ///< [in] the total width of the destination memory including padding.
     size_t patternSize,                       ///< [in] the size in bytes of the pattern. Must be a power of 2 and less
                                               ///< than or equal to width.
@@ -6792,9 +6894,10 @@ UR_APIEXPORT ur_result_t UR_APICALL
 urEnqueueUSMMemcpy2D(
     ur_queue_handle_t hQueue,                 ///< [in] handle of the queue to submit to.
     bool blocking,                            ///< [in] indicates if this operation should block the host.
-    void *pDst,                               ///< [in] pointer to memory where data will be copied.
+    void *pDst,                               ///< [in][bounds(0, dstPitch * height)] pointer to memory where data will
+                                              ///< be copied.
     size_t dstPitch,                          ///< [in] the total width of the source memory including padding.
-    const void *pSrc,                         ///< [in] pointer to memory to be copied.
+    const void *pSrc,                         ///< [in][bounds(0, srcPitch * height)] pointer to memory to be copied.
     size_t srcPitch,                          ///< [in] the total width of the source memory including padding.
     size_t width,                             ///< [in] the width in bytes of each row to be copied.
     size_t height,                            ///< [in] the height of columns to be copied.
@@ -6933,7 +7036,6 @@ urEnqueueReadHostPipe(
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == pipe_symbol`
 ///         + `NULL == pSrc`
-///         + `NULL == phEvent`
 ///     - ::UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST
 ///         + `phEventWaitList == NULL && numEventsInWaitList > 0`
 ///         + `phEventWaitList != NULL && numEventsInWaitList == 0`
@@ -6954,7 +7056,7 @@ urEnqueueWriteHostPipe(
     const ur_event_handle_t *phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
                                               ///< events that must be complete before the host pipe write.
                                               ///< If nullptr, the numEventsInWaitList must be 0, indicating that no wait event.
-    ur_event_handle_t *phEvent                ///< [out] returns an event object that identifies this write command
+    ur_event_handle_t *phEvent                ///< [out][optional] returns an event object that identifies this write command
                                               ///< and can be used to query or queue a wait for this command to complete.
 );
 
@@ -7037,6 +7139,20 @@ typedef struct ur_exp_sampler_mip_properties_t {
 } ur_exp_sampler_mip_properties_t;
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Describes unique sampler addressing mode per dimension
+///
+/// @details
+///     - Specify these properties in ::urSamplerCreate via ::ur_sampler_desc_t
+///       as part of a `pNext` chain.
+typedef struct ur_exp_sampler_addr_modes_t {
+    ur_structure_type_t stype;                 ///< [in] type of this structure, must be
+                                               ///< ::UR_STRUCTURE_TYPE_EXP_SAMPLER_ADDR_MODES
+    void *pNext;                               ///< [in,out][optional] pointer to extension-specific structure
+    ur_sampler_addressing_mode_t addrModes[3]; ///< [in] Specify the address mode of the sampler per dimension
+
+} ur_exp_sampler_addr_modes_t;
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Describes an interop memory resource descriptor
 typedef struct ur_exp_interop_mem_desc_t {
     ur_structure_type_t stype; ///< [in] type of this structure, must be
@@ -7053,6 +7169,21 @@ typedef struct ur_exp_interop_semaphore_desc_t {
     const void *pNext;         ///< [in][optional] pointer to extension-specific structure
 
 } ur_exp_interop_semaphore_desc_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Describes layered image properties
+///
+/// @details
+///     - Specify these properties in ::urBindlessImagesUnsampledImageCreateExp
+///       or ::urBindlessImagesSampledImageCreateExp via ::ur_image_desc_t as
+///       part of a `pNext` chain.
+typedef struct ur_exp_layered_image_properties_t {
+    ur_structure_type_t stype; ///< [in] type of this structure, must be
+                               ///< ::UR_STRUCTURE_TYPE_EXP_LAYERED_IMAGE_PROPERTIES
+    void *pNext;               ///< [in,out][optional] pointer to extension-specific structure
+    uint32_t numLayers;        ///< [in] number of layers the image should have
+
+} ur_exp_layered_image_properties_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief USM allocate pitched memory
@@ -7081,6 +7212,8 @@ typedef struct ur_exp_interop_semaphore_desc_t {
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
 ///         + `NULL == hContext`
 ///         + `NULL == hDevice`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `NULL != pUSMDesc && ::UR_USM_ADVICE_FLAGS_MASK & pUSMDesc->hints`
 ///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
 ///         + `NULL == ppMem`
 ///         + `NULL == pResultPitch`
@@ -8123,6 +8256,88 @@ urCommandBufferAppendMemBufferFillExp(
 );
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Append a USM Prefetch command to a command-buffer object
+///
+/// @details
+///     - Prefetching may not be supported for all devices or allocation types.
+///       If memory prefetching is not supported, the prefetch hint will be
+///       ignored.
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hCommandBuffer`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pMemory`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `::UR_USM_MIGRATION_FLAGS_MASK & flags`
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP
+///         + `pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0`
+///         + `pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0`
+///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `size == 0`
+///         + If `size` is higher than the allocation size of `pMemory`
+///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
+///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
+UR_APIEXPORT ur_result_t UR_APICALL
+urCommandBufferAppendUSMPrefetchExp(
+    ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
+    const void *pMemory,                                          ///< [in] pointer to USM allocated memory to prefetch.
+    size_t size,                                                  ///< [in] size in bytes to be fetched.
+    ur_usm_migration_flags_t flags,                               ///< [in] USM prefetch flags
+    uint32_t numSyncPointsInWaitList,                             ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *pSyncPoint                ///< [out][optional] sync point associated with this command.
+);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Append a USM Advise command to a command-buffer object
+///
+/// @details
+///     - Not all memory advice hints may be supported for all devices or
+///       allocation types. If a memory advice hint is not supported, it will be
+///       ignored.
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hCommandBuffer`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pMemory`
+///     - ::UR_RESULT_ERROR_INVALID_ENUMERATION
+///         + `::UR_USM_ADVICE_FLAGS_MASK & advice`
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_EXP
+///     - ::UR_RESULT_ERROR_INVALID_COMMAND_BUFFER_SYNC_POINT_WAIT_LIST_EXP
+///         + `pSyncPointWaitList == NULL && numSyncPointsInWaitList > 0`
+///         + `pSyncPointWaitList != NULL && numSyncPointsInWaitList == 0`
+///     - ::UR_RESULT_ERROR_INVALID_MEM_OBJECT
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `size == 0`
+///         + If `size` is higher than the allocation size of `pMemory`
+///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
+///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
+UR_APIEXPORT ur_result_t UR_APICALL
+urCommandBufferAppendUSMAdviseExp(
+    ur_exp_command_buffer_handle_t hCommandBuffer,                ///< [in] handle of the command-buffer object.
+    const void *pMemory,                                          ///< [in] pointer to the USM memory object.
+    size_t size,                                                  ///< [in] size in bytes to be advised.
+    ur_usm_advice_flags_t advice,                                 ///< [in] USM memory advice
+    uint32_t numSyncPointsInWaitList,                             ///< [in] The number of sync points in the provided dependency list.
+    const ur_exp_command_buffer_sync_point_t *pSyncPointWaitList, ///< [in][optional] A list of sync points that this command depends on.
+    ur_exp_command_buffer_sync_point_t *pSyncPoint                ///< [out][optional] sync point associated with this command.
+);
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Submit a command-buffer for execution on a queue.
 ///
 /// @returns
@@ -8153,6 +8368,215 @@ urCommandBufferEnqueueExp(
                                                    ///< events.
     ur_event_handle_t *phEvent                     ///< [out][optional] return an event object that identifies this particular
                                                    ///< command-buffer execution instance.
+);
+
+#if !defined(__GNUC__)
+#pragma endregion
+#endif
+// Intel 'oneAPI' Unified Runtime Experimental APIs for Cooperative Kernels
+#if !defined(__GNUC__)
+#pragma region cooperative kernels(experimental)
+#endif
+///////////////////////////////////////////////////////////////////////////////
+#ifndef UR_COOPERATIVE_KERNELS_EXTENSION_STRING_EXP
+/// @brief The extension string which defines support for cooperative-kernels
+///        which is returned when querying device extensions.
+#define UR_COOPERATIVE_KERNELS_EXTENSION_STRING_EXP "ur_exp_cooperative_kernels"
+#endif // UR_COOPERATIVE_KERNELS_EXTENSION_STRING_EXP
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Enqueue a command to execute a cooperative kernel
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hQueue`
+///         + `NULL == hKernel`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pGlobalWorkOffset`
+///         + `NULL == pGlobalWorkSize`
+///     - ::UR_RESULT_ERROR_INVALID_QUEUE
+///     - ::UR_RESULT_ERROR_INVALID_KERNEL
+///     - ::UR_RESULT_ERROR_INVALID_EVENT
+///     - ::UR_RESULT_ERROR_INVALID_EVENT_WAIT_LIST
+///         + `phEventWaitList == NULL && numEventsInWaitList > 0`
+///         + `phEventWaitList != NULL && numEventsInWaitList == 0`
+///         + If event objects in phEventWaitList are not valid events.
+///     - ::UR_RESULT_ERROR_INVALID_WORK_DIMENSION
+///     - ::UR_RESULT_ERROR_INVALID_WORK_GROUP_SIZE
+///     - ::UR_RESULT_ERROR_INVALID_VALUE
+///     - ::UR_RESULT_ERROR_OUT_OF_HOST_MEMORY
+///     - ::UR_RESULT_ERROR_OUT_OF_RESOURCES
+UR_APIEXPORT ur_result_t UR_APICALL
+urEnqueueCooperativeKernelLaunchExp(
+    ur_queue_handle_t hQueue,                 ///< [in] handle of the queue object
+    ur_kernel_handle_t hKernel,               ///< [in] handle of the kernel object
+    uint32_t workDim,                         ///< [in] number of dimensions, from 1 to 3, to specify the global and
+                                              ///< work-group work-items
+    const size_t *pGlobalWorkOffset,          ///< [in] pointer to an array of workDim unsigned values that specify the
+                                              ///< offset used to calculate the global ID of a work-item
+    const size_t *pGlobalWorkSize,            ///< [in] pointer to an array of workDim unsigned values that specify the
+                                              ///< number of global work-items in workDim that will execute the kernel
+                                              ///< function
+    const size_t *pLocalWorkSize,             ///< [in][optional] pointer to an array of workDim unsigned values that
+                                              ///< specify the number of local work-items forming a work-group that will
+                                              ///< execute the kernel function.
+                                              ///< If nullptr, the runtime implementation will choose the work-group
+                                              ///< size.
+    uint32_t numEventsInWaitList,             ///< [in] size of the event wait list
+    const ur_event_handle_t *phEventWaitList, ///< [in][optional][range(0, numEventsInWaitList)] pointer to a list of
+                                              ///< events that must be complete before the kernel execution.
+                                              ///< If nullptr, the numEventsInWaitList must be 0, indicating that no wait
+                                              ///< event.
+    ur_event_handle_t *phEvent                ///< [out][optional] return an event object that identifies this particular
+                                              ///< kernel execution instance.
+);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Query the maximum number of work groups for a cooperative kernel
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hKernel`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == pGroupCountRet`
+///     - ::UR_RESULT_ERROR_INVALID_KERNEL
+UR_APIEXPORT ur_result_t UR_APICALL
+urKernelSuggestMaxCooperativeGroupCountExp(
+    ur_kernel_handle_t hKernel, ///< [in] handle of the kernel object
+    uint32_t *pGroupCountRet    ///< [out] pointer to maximum number of groups
+);
+
+#if !defined(__GNUC__)
+#pragma endregion
+#endif
+// Intel 'oneAPI' Unified Runtime Experimental APIs for multi-device compile
+#if !defined(__GNUC__)
+#pragma region multi device compile(experimental)
+#endif
+///////////////////////////////////////////////////////////////////////////////
+#ifndef UR_MULTI_DEVICE_COMPILE_EXTENSION_STRING_EXP
+/// @brief The extension string which defines support for test
+///        which is returned when querying device extensions.
+#define UR_MULTI_DEVICE_COMPILE_EXTENSION_STRING_EXP "ur_exp_multi_device_compile"
+#endif // UR_MULTI_DEVICE_COMPILE_EXTENSION_STRING_EXP
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Produces an executable program from one program, negates need for the
+///        linking step.
+///
+/// @details
+///     - The application may call this function from simultaneous threads.
+///     - Following a successful call to this entry point, the program passed
+///       will contain a binary of the ::UR_PROGRAM_BINARY_TYPE_EXECUTABLE type
+///       for each device in `phDevices`.
+///
+/// @remarks
+///   _Analogues_
+///     - **clBuildProgram**
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hProgram`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == phDevices`
+///     - ::UR_RESULT_ERROR_INVALID_PROGRAM
+///         + If `hProgram` isn't a valid program object.
+///     - ::UR_RESULT_ERROR_PROGRAM_BUILD_FAILURE
+///         + If an error occurred when building `hProgram`.
+UR_APIEXPORT ur_result_t UR_APICALL
+urProgramBuildExp(
+    ur_program_handle_t hProgram,  ///< [in] Handle of the program to build.
+    uint32_t numDevices,           ///< [in] number of devices
+    ur_device_handle_t *phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    const char *pOptions           ///< [in][optional] pointer to build options null-terminated string.
+);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Produces an executable program from one or more programs.
+///
+/// @details
+///     - The application may call this function from simultaneous threads.
+///     - Following a successful call to this entry point `hProgram` will
+///       contain a binary of the ::UR_PROGRAM_BINARY_TYPE_COMPILED_OBJECT type
+///       for each device in `phDevices`.
+///
+/// @remarks
+///   _Analogues_
+///     - **clCompileProgram**
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hProgram`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == phDevices`
+///     - ::UR_RESULT_ERROR_INVALID_PROGRAM
+///         + If `hProgram` isn't a valid program object.
+///     - ::UR_RESULT_ERROR_PROGRAM_BUILD_FAILURE
+///         + If an error occurred while compiling `hProgram`.
+UR_APIEXPORT ur_result_t UR_APICALL
+urProgramCompileExp(
+    ur_program_handle_t hProgram,  ///< [in][out] handle of the program to compile.
+    uint32_t numDevices,           ///< [in] number of devices
+    ur_device_handle_t *phDevices, ///< [in][range(0, numDevices)] pointer to array of device handles
+    const char *pOptions           ///< [in][optional] pointer to build options null-terminated string.
+);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Produces an executable program from one or more programs.
+///
+/// @details
+///     - The application may call this function from simultaneous threads.
+///     - Following a successful call to this entry point the program returned
+///       in `phProgram` will contain a binary of the
+///       ::UR_PROGRAM_BINARY_TYPE_EXECUTABLE type for each device in
+///       `phDevices`.
+///
+/// @remarks
+///   _Analogues_
+///     - **clLinkProgram**
+///
+/// @returns
+///     - ::UR_RESULT_SUCCESS
+///     - ::UR_RESULT_ERROR_UNINITIALIZED
+///     - ::UR_RESULT_ERROR_DEVICE_LOST
+///     - ::UR_RESULT_ERROR_ADAPTER_SPECIFIC
+///     - ::UR_RESULT_ERROR_INVALID_NULL_HANDLE
+///         + `NULL == hContext`
+///     - ::UR_RESULT_ERROR_INVALID_NULL_POINTER
+///         + `NULL == phDevices`
+///         + `NULL == phPrograms`
+///         + `NULL == phProgram`
+///     - ::UR_RESULT_ERROR_INVALID_PROGRAM
+///         + If one of the programs in `phPrograms` isn't a valid program object.
+///     - ::UR_RESULT_ERROR_INVALID_SIZE
+///         + `count == 0`
+///     - ::UR_RESULT_ERROR_PROGRAM_LINK_FAILURE
+///         + If an error occurred while linking `phPrograms`.
+UR_APIEXPORT ur_result_t UR_APICALL
+urProgramLinkExp(
+    ur_context_handle_t hContext,          ///< [in] handle of the context instance.
+    uint32_t numDevices,                   ///< [in] number of devices
+    ur_device_handle_t *phDevices,         ///< [in][range(0, numDevices)] pointer to array of device handles
+    uint32_t count,                        ///< [in] number of program handles in `phPrograms`.
+    const ur_program_handle_t *phPrograms, ///< [in][range(0, count)] pointer to array of program handles.
+    const char *pOptions,                  ///< [in][optional] pointer to linker options null-terminated string.
+    ur_program_handle_t *phProgram         ///< [out] pointer to handle of program object created.
 );
 
 #if !defined(__GNUC__)
@@ -8410,6 +8834,16 @@ typedef struct ur_loader_config_enable_layer_params_t {
 } ur_loader_config_enable_layer_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urLoaderConfigSetCodeLocationCallback
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_loader_config_set_code_location_callback_params_t {
+    ur_loader_config_handle_t *phLoaderConfig;
+    ur_code_location_callback_t *ppfnCodeloc;
+    void **ppUserData;
+} ur_loader_config_set_code_location_callback_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urPlatformGet
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
@@ -8657,6 +9091,17 @@ typedef struct ur_program_build_params_t {
 } ur_program_build_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urProgramBuildExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_program_build_exp_params_t {
+    ur_program_handle_t *phProgram;
+    uint32_t *pnumDevices;
+    ur_device_handle_t **pphDevices;
+    const char **ppOptions;
+} ur_program_build_exp_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urProgramCompile
 /// @details Each entry is a pointer to the parameter passed to the function;
 ///     allowing the callback the ability to modify the parameter's value
@@ -8665,6 +9110,17 @@ typedef struct ur_program_compile_params_t {
     ur_program_handle_t *phProgram;
     const char **ppOptions;
 } ur_program_compile_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urProgramCompileExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_program_compile_exp_params_t {
+    ur_program_handle_t *phProgram;
+    uint32_t *pnumDevices;
+    ur_device_handle_t **pphDevices;
+    const char **ppOptions;
+} ur_program_compile_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urProgramLink
@@ -8677,6 +9133,20 @@ typedef struct ur_program_link_params_t {
     const char **ppOptions;
     ur_program_handle_t **pphProgram;
 } ur_program_link_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urProgramLinkExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_program_link_exp_params_t {
+    ur_context_handle_t *phContext;
+    uint32_t *pnumDevices;
+    ur_device_handle_t **pphDevices;
+    uint32_t *pcount;
+    const ur_program_handle_t **pphPrograms;
+    const char **ppOptions;
+    ur_program_handle_t **pphProgram;
+} ur_program_link_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urProgramRetain
@@ -8922,6 +9392,15 @@ typedef struct ur_kernel_set_specialization_constants_params_t {
     uint32_t *pcount;
     const ur_specialization_constant_info_t **ppSpecConstants;
 } ur_kernel_set_specialization_constants_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urKernelSuggestMaxCooperativeGroupCountExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_kernel_suggest_max_cooperative_group_count_exp_params_t {
+    ur_kernel_handle_t *phKernel;
+    uint32_t **ppGroupCountRet;
+} ur_kernel_suggest_max_cooperative_group_count_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urSamplerCreate
@@ -9419,7 +9898,7 @@ typedef struct ur_enqueue_mem_unmap_params_t {
 ///     allowing the callback the ability to modify the parameter's value
 typedef struct ur_enqueue_usm_fill_params_t {
     ur_queue_handle_t *phQueue;
-    void **pptr;
+    void **ppMem;
     size_t *ppatternSize;
     const void **ppPattern;
     size_t *psize;
@@ -9569,6 +10048,22 @@ typedef struct ur_enqueue_write_host_pipe_params_t {
     const ur_event_handle_t **pphEventWaitList;
     ur_event_handle_t **pphEvent;
 } ur_enqueue_write_host_pipe_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urEnqueueCooperativeKernelLaunchExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_enqueue_cooperative_kernel_launch_exp_params_t {
+    ur_queue_handle_t *phQueue;
+    ur_kernel_handle_t *phKernel;
+    uint32_t *pworkDim;
+    const size_t **ppGlobalWorkOffset;
+    const size_t **ppGlobalWorkSize;
+    const size_t **ppLocalWorkSize;
+    uint32_t *pnumEventsInWaitList;
+    const ur_event_handle_t **pphEventWaitList;
+    ur_event_handle_t **pphEvent;
+} ur_enqueue_cooperative_kernel_launch_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urQueueGetInfo
@@ -10185,6 +10680,34 @@ typedef struct ur_command_buffer_append_mem_buffer_fill_exp_params_t {
     const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
     ur_exp_command_buffer_sync_point_t **ppSyncPoint;
 } ur_command_buffer_append_mem_buffer_fill_exp_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urCommandBufferAppendUSMPrefetchExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_command_buffer_append_usm_prefetch_exp_params_t {
+    ur_exp_command_buffer_handle_t *phCommandBuffer;
+    const void **ppMemory;
+    size_t *psize;
+    ur_usm_migration_flags_t *pflags;
+    uint32_t *pnumSyncPointsInWaitList;
+    const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
+    ur_exp_command_buffer_sync_point_t **ppSyncPoint;
+} ur_command_buffer_append_usm_prefetch_exp_params_t;
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Function parameters for urCommandBufferAppendUSMAdviseExp
+/// @details Each entry is a pointer to the parameter passed to the function;
+///     allowing the callback the ability to modify the parameter's value
+typedef struct ur_command_buffer_append_usm_advise_exp_params_t {
+    ur_exp_command_buffer_handle_t *phCommandBuffer;
+    const void **ppMemory;
+    size_t *psize;
+    ur_usm_advice_flags_t *padvice;
+    uint32_t *pnumSyncPointsInWaitList;
+    const ur_exp_command_buffer_sync_point_t **ppSyncPointWaitList;
+    ur_exp_command_buffer_sync_point_t **ppSyncPoint;
+} ur_command_buffer_append_usm_advise_exp_params_t;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Function parameters for urCommandBufferEnqueueExp
